@@ -1,537 +1,487 @@
-# 📘 Chapter 25 — Express.js Request Data
+# 📘 PART 6 — REST API DEVELOPMENT
+
+# Chapter 25 — REST API Validation
 
 
 
-PART 5 — EXPRESS.JS
+Beginner Level
 
-Chapter 25
+Practical Examples
 
 
 
-In this chapter, you will learn how to receive data from the client (React, Postman, browser, etc.) using Express.js.
+## 📚 Chapter Topics
 
-We will learn five important request properties:
+In this chapter, we will learn:
 
-1. `req.params`
-2. `req.query`
-3. `req.body`
-4. `req.headers`
-5. `req.cookies`
+1. What is API Validation?
+2. Why do we need validation?
+3. Real-world example
+4. Validation flow
+5. Types of validation
+6. Required field validation
+7. String validation
+8. Number validation
+9. Email validation
+10. Custom validation middleware
+11. Express-validator
+12. Practical Student API
+13. Common mistakes
+14. Best practices
+15. Interview questions
+16. Practice problems
+17. Mini challenge
+18. Chapter summary
 
-## 🔑 Requires Before Starting
+## 1. What is API Validation?
 
-Before starting this chapter, you should understand:
+API Validation means checking incoming user data before processing or saving it.
 
-- Basic JavaScript
-- Node.js and Express.js
-- Express routes (`GET`, `POST`, `PUT`, `DELETE`)
-- Middleware
-- Postman basics
-- JSON data
+For example, imagine a student registration API.
 
-Example: When a user sends a request from React to your Express backend, Express needs to read the data sent by that user.
-
-## 📖 Interactive reading
-
-📖 Read — What will you learn?
-
-💡 Important — Remember this
-
-## 1. What is Request Data?
-
-Request data means information sent by a client to a server.
-
-For example, imagine a student registration application.
-
-A user enters:
+The user sends:
 
 ```
 {
-  "name": "Ramesh",
-  "email": "ramesh@gmail.com",
-  "age": 25
-}
-```
-
-The React frontend sends this information to the Express backend.
-
-Express receives the request and reads the information using request properties.
-
-```
-React Frontend
-      |
-      | HTTP Request
-      v
-Express Backend
-      |
-      | Reads request data
-      v
-req.params
-req.query
-req.body
-req.headers
-req.cookies
-      |
-      v
-Controller / Database
-```
-
-Simple definition: Request properties help Express read information sent by the client.
-
-## 2. Why do we need Request Data?
-
-Suppose you are building a Student Management System.
-
-You need to perform different operations:
-
-| Requirement                    | Request property |
-| ------------------------------ | ---------------- |
-| Get a particular student by ID | `req.params`     |
-| Search students by department  | `req.query`      |
-| Register a new student         | `req.body`       |
-| Read an authorization token    | `req.headers`    |
-| Read a login session cookie    | `req.cookies`    |
-
-Without request data, your backend cannot properly understand what information the client is sending.
-
-## 3. Real-world analogy
-
-Imagine a courier service.
-
-| Express property | Real-world example                      |
-| ---------------- | --------------------------------------- |
-| `req.params`     | Parcel tracking number                  |
-| `req.query`      | Search or delivery preferences          |
-| `req.body`       | Information inside the parcel form      |
-| `req.headers`    | Parcel labels and delivery instructions |
-| `req.cookies`    | A saved identification/session token    |
-
-For example, when you track a parcel using tracking number `1001`, the tracking number identifies the specific parcel.
-
-Similarly:
-
-```
-GET /api/students/1001
-```
-
-Here, `1001` is a route parameter.
-
-## 4. Architecture / Flow
-
-[Demystifying HTTP: Request, Response, Headers, Params, Cookies, Query, and Authentication](https://images.openai.com/static-rsc-4/nxDD-JLmnbuiP2PJZVcMkjh2e0G-czqJuyhPFIkohRzbUONV-sMwG5z2xmKFaRFVA8CPrHP-97rT1QYH6aP6jNUUlsCa_-QIi2CU1zsNn3xyoO-vFys7sML0zt0rpBHgMJuKCs1E2O80kE7sQxqJ5znpDVAE2GFbiJTTDKooEIY?purpose=inline)
-
-[linkedin.com](https://www.linkedin.com/pulse/demystifying-http-request-response-headers-params-query-vithanage-p0p3e?utm_source=chatgpt.com)
-
-### Request flow
-
-\#chatgpt-mermaid-\_r_7mi\_{font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";font-size:16px;fill:rgb(13, 13, 13);}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#chatgpt-mermaid-\_r_7mi\_ .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#chatgpt-mermaid-\_r_7mi\_ .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#chatgpt-mermaid-\_r_7mi\_ .error-icon{fill:rgb(243, 243, 243);}#chatgpt-mermaid-\_r_7mi\_ .error-text{fill:rgb(13, 13, 13);stroke:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_7mi\_ .edge-thickness-normal{stroke-width:1px;}#chatgpt-mermaid-\_r_7mi\_ .edge-thickness-thick{stroke-width:3.5px;}#chatgpt-mermaid-\_r_7mi\_ .edge-pattern-solid{stroke-dasharray:0;}#chatgpt-mermaid-\_r_7mi\_ .edge-thickness-invisible{stroke-width:0;fill:none;}#chatgpt-mermaid-\_r_7mi\_ .edge-pattern-dashed{stroke-dasharray:3;}#chatgpt-mermaid-\_r_7mi\_ .edge-pattern-dotted{stroke-dasharray:2;}#chatgpt-mermaid-\_r_7mi\_ .marker{fill:rgb(143, 143, 143);stroke:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_7mi\_ .marker.cross{stroke:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_7mi\_ svg{font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";font-size:16px;}#chatgpt-mermaid-\_r_7mi\_ p{margin:0;}#chatgpt-mermaid-\_r_7mi\_ .label{font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";color:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_7mi\_ .cluster-label text{fill:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_7mi\_ .cluster-label span{color:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_7mi\_ .cluster-label span p{background-color:transparent;}#chatgpt-mermaid-\_r_7mi\_ .label text,#chatgpt-mermaid-\_r_7mi\_ span{fill:rgb(13, 13, 13);color:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_7mi\_ .node rect,#chatgpt-mermaid-\_r_7mi\_ .node circle,#chatgpt-mermaid-\_r_7mi\_ .node ellipse,#chatgpt-mermaid-\_r_7mi\_ .node polygon,#chatgpt-mermaid-\_r_7mi\_ .node path{fill:rgb(222, 234, 251);stroke:rgb(83, 154, 248);stroke-width:1px;}#chatgpt-mermaid-\_r_7mi\_ .rough-node .label text,#chatgpt-mermaid-\_r_7mi\_ .node .label text,#chatgpt-mermaid-\_r_7mi\_ .image-shape .label,#chatgpt-mermaid-\_r_7mi\_ .icon-shape .label{text-anchor:middle;}#chatgpt-mermaid-\_r_7mi\_ .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#chatgpt-mermaid-\_r_7mi\_ .rough-node .label,#chatgpt-mermaid-\_r_7mi\_ .node .label,#chatgpt-mermaid-\_r_7mi\_ .image-shape .label,#chatgpt-mermaid-\_r_7mi\_ .icon-shape .label{text-align:center;}#chatgpt-mermaid-\_r_7mi\_ .node.clickable{cursor:pointer;}#chatgpt-mermaid-\_r_7mi\_ .root .anchor path{fill:rgb(143, 143, 143)!important;stroke-width:0;stroke:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_7mi\_ .arrowheadPath{fill:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_7mi\_ .edgePath .path{stroke:rgb(143, 143, 143);stroke-width:1px;}#chatgpt-mermaid-\_r_7mi\_ .flowchart-link{stroke:rgb(143, 143, 143);fill:none;}#chatgpt-mermaid-\_r_7mi\_ .edgeLabel{background-color:rgb(252, 252, 252);text-align:center;}#chatgpt-mermaid-\_r_7mi\_ .edgeLabel p{background-color:rgb(252, 252, 252);}#chatgpt-mermaid-\_r_7mi\_ .edgeLabel rect{opacity:0.5;background-color:rgb(252, 252, 252);fill:rgb(252, 252, 252);}#chatgpt-mermaid-\_r_7mi\_ .labelBkg{background-color:rgba(252, 252, 252, 0.5);}#chatgpt-mermaid-\_r_7mi\_ .cluster rect{fill:rgb(243, 243, 243);stroke:rgba(0, 0, 0, 0.1);stroke-width:1px;}#chatgpt-mermaid-\_r_7mi\_ .cluster text{fill:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_7mi\_ .cluster span{color:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_7mi\_ div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";font-size:12px;background:rgb(243, 243, 243);border:1px solid rgba(0, 0, 0, 0.1);border-radius:2px;pointer-events:none;z-index:100;}#chatgpt-mermaid-\_r_7mi\_ .flowchartTitleText{text-anchor:middle;font-size:18px;fill:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_7mi\_ rect.text{fill:none;stroke-width:0;}#chatgpt-mermaid-\_r_7mi\_ .icon-shape,#chatgpt-mermaid-\_r_7mi\_ .image-shape{background-color:rgb(252, 252, 252);text-align:center;}#chatgpt-mermaid-\_r_7mi\_ .icon-shape p,#chatgpt-mermaid-\_r_7mi\_ .image-shape p{background-color:rgb(252, 252, 252);padding:2px;}#chatgpt-mermaid-\_r_7mi\_ .icon-shape .label rect,#chatgpt-mermaid-\_r_7mi\_ .image-shape .label rect{opacity:0.5;background-color:rgb(252, 252, 252);fill:rgb(252, 252, 252);}#chatgpt-mermaid-\_r_7mi\_ .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#chatgpt-mermaid-\_r_7mi\_ .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#chatgpt-mermaid-\_r_7mi\_ .node .neo-node{stroke:rgb(83, 154, 248);}#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].node rect,#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].cluster rect,#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].node polygon{stroke:url(#chatgpt-mermaid-\_r_7mi\_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].swimlane.cluster rect{filter:none;}#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].node path{stroke:url(#chatgpt-mermaid-\_r_7mi\_-gradient);stroke-width:1px;}#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].node .outer-path{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].node .neo-line path{stroke:rgb(83, 154, 248);filter:none;}#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].node circle{stroke:url(#chatgpt-mermaid-\_r_7mi\_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].node circle .state-start{fill:#000000;}#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].icon-shape .icon{fill:url(#chatgpt-mermaid-\_r_7mi\_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_7mi\_ [data-look="neo"].icon-shape .icon-neo path{stroke:url(#chatgpt-mermaid-\_r_7mi\_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_7mi\_ .node text{font-size:14px;font-weight:600;letter-spacing:normal;fill:rgb(0, 79, 153);}#chatgpt-mermaid-\_r_7mi\_ .edgeLabels text{font-size:13px;font-weight:600;letter-spacing:-0.08px;fill:rgb(0, 79, 153);}#chatgpt-mermaid-\_r_7mi\_ .node tspan[font-weight="normal"],#chatgpt-mermaid-\_r_7mi\_ .edgeLabels tspan[font-weight="normal"]{font-weight:600;}#chatgpt-mermaid-\_r_7mi\_ .edgeLabel .label rect{opacity:1;rx:13px;ry:13px;fill:rgb(245, 250, 255);stroke:rgb(206, 219, 229);stroke-width:1px;}#chatgpt-mermaid-\_r_7mi\_ .node rect,#chatgpt-mermaid-\_r_7mi\_ .node circle,#chatgpt-mermaid-\_r_7mi\_ .node ellipse,#chatgpt-mermaid-\_r_7mi\_ .node polygon,#chatgpt-mermaid-\_r_7mi\_ .node path{fill:rgb(229, 243, 255);stroke:rgba(0, 0, 0, 0.1);stroke-width:1px;}#chatgpt-mermaid-\_r_7mi\_ .node rect{rx:16px;ry:16px;}#chatgpt-mermaid-\_r_7mi\_ .mermaid-decision .label-container{fill:rgb(245, 250, 255);stroke:rgb(206, 219, 229);stroke-dasharray:2,2;}#chatgpt-mermaid-\_r_7mi\_ .edgePaths .flowchart-link{stroke:rgb(143, 143, 143);stroke-width:1px;stroke-linecap:round;stroke-linejoin:round;}#chatgpt-mermaid-\_r_7mi\_ .marker{fill:rgb(143, 143, 143);stroke:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_7mi\_ :root{--mermaid-font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";}React / Postman ClientHTTP RequestExpress MiddlewareRead Request Datareq.paramsreq.queryreq.bodyreq.headersreq.cookiesRoute / ControllerDatabase / Business LogicHTTP Response
-
-The request reaches Express first. Middleware processes the request, and then your route or controller reads the required data.
-
-## 5. Syntax
-
-Let's understand the five request properties.
-
-### A. `req.params`
-
-Used to read values from the URL path.
-
-Example URL:
-
-```
-GET /api/students/101
-```
-
-Route:
-
-```
-app.get("/api/students/:id", (req, res) => {
-
-    // Read route parameter
-    const studentId = req.params.id;
-
-    res.json({
-        id: studentId
-    });
-});
-```
-
-Here:
-
-```
-req.params.id
-```
-
-Output:
-
-```
-{
-  "id": "101"
-}
-```
-
-Notice that the value is a string.
-
-You can convert it into a number:
-
-```
-const studentId = Number(req.params.id);
-```
-
-### B. `req.query`
-
-Used to read query parameters from the URL.
-
-Example URL:
-
-```
-GET /api/students?department=IT&age=25
-```
-
-Route:
-
-```
-app.get("/api/students", (req, res) => {
-
-    // Read query parameters
-    const department = req.query.department;
-    const age = req.query.age;
-
-    res.json({
-        department: department,
-        age: age
-    });
-});
-```
-
-Output:
-
-```
-{
-  "department": "IT",
-  "age": "25"
-}
-```
-
-Common uses:
-
-- Search
-- Filtering
-- Sorting
-- Pagination
-
-Example:
-
-```
-/api/students?page=1&limit=10
-```
-
-### C. `req.body`
-
-Used to read data sent inside the request body.
-
-Usually used with:
-
-- POST
-- PUT
-- PATCH
-
-First, add JSON middleware:
-
-```
-app.use(express.json());
-```
-
-Then:
-
-```
-app.post("/api/students", (req, res) => {
-
-    // Read request body
-    const student = req.body;
-
-    res.json({
-        message: "Student received",
-        data: student
-    });
-});
-```
-
-Send this JSON from Postman:
-
-```
-{
-  "name": "Ramesh",
-  "email": "ramesh@gmail.com",
-  "age": 25
-}
-```
-
-Output:
-
-```
-{
-  "message": "Student received",
-  "data": {
     "name": "Ramesh",
-    "email": "ramesh@gmail.com",
-    "age": 25
-  }
+    "age": 25,
+    "course": "Node.js"
 }
 ```
 
-Important: Without `express.json()` middleware, Express will not automatically parse incoming JSON request bodies.
+This data is valid.
 
-### D. `req.headers`
+But what happens if the user sends:
 
-Headers contain additional information about an HTTP request.
+```
+{
+    "name": "",
+    "age": -10,
+    "course": ""
+}
+```
+
+This data is invalid because:
+
+- Name is empty.
+- Age is negative.
+- Course is empty.
+
+Validation helps us reject incorrect data.
+
+## 2. Why do we need API Validation?
+
+Without validation, users can submit incorrect data to our backend.
+
+For example:
+
+| Field  | Valid data        | Invalid data |
+| ------ | ----------------- | ------------ |
+| Name   | Ramesh            | Empty string |
+| Age    | 25                | -10          |
+| Email  | ramesh\@gmail.com | ramesh123    |
+| Course | Node.js           | Empty string |
+| Price  | 500               | -100         |
+
+We use validation to:
+
+- Prevent incorrect data.
+- Maintain database quality.
+- Improve application security.
+- Give clear error messages.
+- Avoid application errors.
+
+## 3. Real-world example
+
+Imagine an online shopping application.
+
+When a user adds a product, the API receives:
+
+```
+{
+    "name": "Laptop",
+    "price": 50000,
+    "stock": 10
+}
+```
+
+Our backend should check:
+
+1. Is the product name provided?
+2. Is the price a positive number?
+3. Is stock a valid non-negative integer?
+
+If everything is correct, save the product.
+
+Otherwise, return an error.
+
+## 4. API Validation Flow
+
+```
+        CLIENT / POSTMAN
+                |
+                v
+          Send JSON Data
+                |
+                v
+          EXPRESS SERVER
+                |
+                v
+          VALIDATION
+                |
+          +-----+-----+
+          |           |
+        Valid       Invalid
+          |           |
+          v           v
+      Controller    Return 400
+          |         Error Message
+          v
+      Save Data
+          |
+          v
+      Return Success
+```
+
+Remember: Validation should happen before saving data.
+
+## 5. Types of Validation
+
+Common validation types:
+
+| Validation | Purpose                             |
+| ---------- | ----------------------------------- |
+| Required   | Check whether a field exists        |
+| String     | Check whether the value is a string |
+| Number     | Check whether the value is numeric  |
+| Email      | Check email format                  |
+| Length     | Check minimum and maximum length    |
+| Range      | Check minimum and maximum values    |
+| Custom     | Apply our own business rules        |
+
+There is also a related concept called sanitization.
+
+- Validation checks whether data is acceptable.
+- Sanitization cleans or normalizes data.
 
 Example:
 
 ```
-Authorization: Bearer your-token
-Content-Type: application/json
-Accept: application/json
+const name = "  Ramesh  ";
+
+const cleanName = name.trim();
+
+console.log(cleanName);
 ```
 
-Read headers:
+Output:
 
 ```
-app.get("/api/profile", (req, res) => {
-
-    // Read authorization header
-    const authorization = req.headers.authorization;
-
-    // Read content type
-    const contentType = req.headers["content-type"];
-
-    res.json({
-        authorization: authorization,
-        contentType: contentType
-    });
-});
+Ramesh
 ```
 
-You can also use:
+`trim()` removes spaces from the beginning and end.
 
-```
-const authorization = req.get("Authorization");
-```
+## 6. Required Field Validation
 
-Common uses:
-
-- Authentication
-- Content type
-- Accepted response formats
-- Client information
-
-Never expose or log real authentication tokens unnecessarily.
-
-### E. `req.cookies`
-
-Cookies are small pieces of data stored by the browser and sent with matching requests.
+A required field means the user must provide a value.
 
 Example:
 
 ```
-Cookie: sessionId=abc123
+const name = "Ramesh";
+const course = "Node.js";
+
+if (!name || !course) {
+    console.log("Name and course are required");
+} else {
+    console.log("Valid data");
+}
 ```
 
-Express does not automatically parse cookies into `req.cookies`.
-
-First install the package:
+Output:
 
 ```
-npm install cookie-parser
+Valid data
 ```
 
-Import and configure it:
+### Express API example
 
 ```
-const cookieParser = require("cookie-parser");
+app.post("/students", (req, res) => {
 
-// Register cookie middleware
-app.use(cookieParser());
-```
+    const { name, course } = req.body;
 
-Now read cookies:
+    // Check required fields
+    if (!name || !course) {
+        return res.status(400).json({
+            message: "Name and course are required"
+        });
+    }
 
-```
-app.get("/api/profile", (req, res) => {
-
-    // Read cookie
-    const sessionId = req.cookies.sessionId;
-
-    res.json({
-        sessionId: sessionId
+    res.status(201).json({
+        message: "Student data is valid"
     });
+
 });
 ```
 
-Setting a cookie:
+Important: `return` prevents the function from continuing after sending an error response.
+
+## 7. String Validation
+
+Sometimes we need to check whether the input is a string.
 
 ```
-app.get("/set-cookie", (req, res) => {
+const name = "Ramesh";
 
-    // Create a cookie
-    res.cookie("username", "Ramesh", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax"
-    });
-
-    res.json({
-        message: "Cookie created"
-    });
-});
+// Check string type
+if (typeof name !== "string") {
+    console.log("Name must be a string");
+} else {
+    console.log("Valid name");
+}
 ```
 
-Clearing a cookie:
+Output:
 
 ```
-app.get("/clear-cookie", (req, res) => {
-
-    // Remove the cookie
-    res.clearCookie("username");
-
-    res.json({
-        message: "Cookie cleared"
-    });
-});
+Valid name
 ```
 
-`cookie-parser` is needed for reading cookies through `req.cookies`. Express itself provides `res.cookie()` and `res.clearCookie()`.
+### Check empty strings
 
-For production authentication, use secure session or token patterns. Cookie options such as `HttpOnly`, `Secure`, and `SameSite` are important.
+```
+const name = "   ";
 
-## 6. Basic Example
+if (typeof name !== "string" || name.trim() === "") {
+    console.log("Name cannot be empty");
+} else {
+    console.log("Valid name");
+}
+```
 
-Let's understand all five properties in one small Express application.
+Output:
+
+```
+Name cannot be empty
+```
+
+Why use `trim()`?
+
+Because `"   "` contains spaces but does not contain a meaningful name.
+
+## 8. Number Validation
+
+Suppose the user provides an age.
+
+Valid age:
+
+```
+const age = 25;
+```
+
+Invalid age:
+
+```
+const age = -10;
+```
+
+### Example
+
+```
+const age = 25;
+
+// Check integer and positive value
+if (!Number.isInteger(age) || age <= 0) {
+    console.log("Age must be a positive integer");
+} else {
+    console.log("Valid age");
+}
+```
+
+Output:
+
+```
+Valid age
+```
+
+You can also set a maximum:
+
+```
+if (!Number.isInteger(age) || age < 1 || age > 120) {
+    console.log("Enter a valid age");
+}
+```
+
+Important: Avoid using only `!age` to check numbers. Zero is also treated as falsy in JavaScript. Use explicit checks such as `age === undefined` or `Number.isInteger(age)`.
+
+## 9. Email Validation
+
+An email should follow a recognizable email format.
+
+Valid example:
+
+```
+ramesh@gmail.com
+```
+
+Invalid example:
+
+```
+ramesh123
+```
+
+For a simple learning example:
+
+```
+const email = "ramesh@gmail.com";
+
+// Simple email format check
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailPattern.test(email)) {
+    console.log("Invalid email");
+} else {
+    console.log("Valid email");
+}
+```
+
+Output:
+
+```
+Valid email
+```
+
+This regular expression is only a basic format check. Real email validation is more complex, so using a validation library is usually better.
+
+## 10. Custom Validation Middleware
+
+In Express, we can create our own validation middleware.
+
+Middleware checks the request data before the controller executes.
 
 ### Project structure
 
 ```
-25_Request_Data/
+student-api/
 │
-├── server.js
-├── package.json
-└── .env
+├── middleware/
+│   └── validateStudent.js
+│
+├── controllers/
+│   └── studentController.js
+│
+├── routes/
+│   └── studentRoutes.js
+│
+└── server.js
 ```
 
-### Install packages
+### Step 1: Create `validateStudent.js`
 
 ```
-npm init -y
-npm install express cookie-parser
-npm install --save-dev nodemon
+// Custom validation middleware
+
+const validateStudent = (req, res, next) => {
+
+    // Get data from request body
+    const { name, age, course } = req.body;
+
+    const errors = [];
+
+    // Validate name
+    if (typeof name !== "string" || name.trim() === "") {
+        errors.push("Name is required");
+    }
+
+    // Validate age
+    if (!Number.isInteger(age) || age < 1 || age > 120) {
+        errors.push("Age must be a valid positive integer");
+    }
+
+    // Validate course
+    if (typeof course !== "string" || course.trim() === "") {
+        errors.push("Course is required");
+    }
+
+    // If errors exist, return response
+    if (errors.length > 0) {
+        return res.status(400).json({
+            success: false,
+            errors: errors
+        });
+    }
+
+    // Continue to next middleware or controller
+    next();
+};
+
+module.exports = validateStudent;
 ```
 
-### server.js
+### Step 2: Create `studentController.js`
 
 ```
-// Import Express
-const express = require("express");
+const students = [];
 
-// Import cookie-parser
-const cookieParser = require("cookie-parser");
+const createStudent = (req, res) => {
 
-// Create Express application
-const app = express();
+    const { name, age, course } = req.body;
 
-// Parse JSON request bodies
-app.use(express.json());
+    const newStudent = {
+        id: students.length + 1,
+        name: name.trim(),
+        age,
+        course: course.trim()
+    };
 
-// Parse URL-encoded form data
-app.use(express.urlencoded({ extended: true }));
-
-// Parse cookies
-app.use(cookieParser());
-
-// ----------------------------------
-// 1. req.params
-// ----------------------------------
-
-app.get("/api/students/:id", (req, res) => {
-
-    const id = req.params.id;
-
-    res.json({
-        message: "Student ID received",
-        studentId: id
-    });
-});
-
-// ----------------------------------
-// 2. req.query
-// ----------------------------------
-
-app.get("/api/search", (req, res) => {
-
-    const department = req.query.department;
-    const page = Number(req.query.page || 1);
-
-    res.json({
-        department: department,
-        page: page
-    });
-});
-
-// ----------------------------------
-// 3. req.body
-// ----------------------------------
-
-app.post("/api/students", (req, res) => {
-
-    const { name, email, age } = req.body;
+    students.push(newStudent);
 
     res.status(201).json({
-        message: "Student data received",
-        student: {
-            name,
-            email,
-            age
-        }
-    });
-});
-
-// ----------------------------------
-// 4. req.headers
-// ----------------------------------
-
-app.get("/api/headers", (req, res) => {
-
-    const authorization = req.get("Authorization");
-
-    res.json({
-        authorization: authorization || null
-    });
-});
-
-// ----------------------------------
-// 5. req.cookies
-// ----------------------------------
-
-app.get("/api/cookies", (req, res) => {
-
-    const username = req.cookies.username;
-
-    res.json({
-        username: username || null
-    });
-});
-
-// Create cookie
-app.get("/set-cookie", (req, res) => {
-
-    res.cookie("username", "Ramesh", {
-        httpOnly: true,
-        sameSite: "lax"
+        message: "Student created successfully",
+        data: newStudent
     });
 
-    res.json({
-        message: "Cookie created"
-    });
-});
+};
+
+module.exports = {
+    createStudent
+};
+```
+
+### Step 3: Create `studentRoutes.js`
+
+```
+const express = require("express");
+
+const router = express.Router();
+
+const validateStudent = require("../middleware/validateStudent");
+
+const { createStudent } = require("../controllers/studentController");
+
+// Validation runs before controller
+router.post("/", validateStudent, createStudent);
+
+module.exports = router;
+```
+
+### Step 4: Create `server.js`
+
+```
+const express = require("express");
+
+const app = express();
+
+// Read JSON request data
+app.use(express.json());
+
+// Import routes
+const studentRoutes = require("./routes/studentRoutes");
+
+// Register routes
+app.use("/api/students", studentRoutes);
 
 // Start server
 app.listen(3000, () => {
@@ -539,586 +489,375 @@ app.listen(3000, () => {
 });
 ```
 
-Run the application:
+### How does this work?
 
 ```
-node server.js
+POST /api/students
+        |
+        v
+   express.json()
+        |
+        v
+ validateStudent
+        |
+        +----------+
+        |          |
+      Invalid     Valid
+        |          |
+        v          v
+     400 Error  createStudent
+                   |
+                   v
+               Save Student
+                   |
+                   v
+               201 Response
 ```
 
-Or use Nodemon:
+## 11. Express-validator
+
+So far, we have written validation manually.
+
+But in real projects, we can use a package called express-validator.
+
+It provides ready-made validation functions.
+
+### Step 1: Install package
+
+Open the VS Code terminal:
 
 ```
-npx nodemon server.js
+npm install express-validator
 ```
 
-## 7. Dry Run
-
-Let's understand how Express reads each request.
-
-### Example 1 — `req.params`
-
-Request:
+### Step 2: Import functions
 
 ```
-GET http://localhost:3000/api/students/101
+const { body, validationResult } = require("express-validator");
 ```
 
-Express reads:
+- `body()` validates request body fields.
+- `validationResult()` collects validation errors.
+
+### Step 3: Create validation rules
 
 ```
-req.params.id
+const { body, validationResult } = require("express-validator");
+
+const validateStudent = [
+
+    // Name validation
+    body("name")
+        .trim()
+        .notEmpty()
+        .withMessage("Name is required"),
+
+    // Course validation
+    body("course")
+        .trim()
+        .notEmpty()
+        .withMessage("Course is required"),
+
+    // Age validation
+    body("age")
+        .isInt({ min: 1 })
+        .withMessage("Age must be a positive integer"),
+
+    // Email validation
+    body("email")
+        .isEmail()
+        .withMessage("Enter a valid email"),
+
+    // Check validation errors
+    (req, res, next) => {
+
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                errors: errors.array()
+            });
+        }
+
+        next();
+    }
+
+];
+
+module.exports = validateStudent;
 ```
 
-Step-by-step:
-
-```
-URL: /api/students/101
-          |
-          v
-Route: /api/students/:id
-          |
-          v
-id = "101"
-          |
-          v
-Send JSON response
-```
-
-### Example 2 — `req.query`
-
-Request:
-
-```
-GET http://localhost:3000/api/search?department=IT&page=2
-```
-
-Express reads:
-
-```
-req.query.department
-req.query.page
-```
-
-Values:
-
-```
-department = "IT"
-page = "2"
-```
-
-### Example 3 — `req.body`
-
-Request:
-
-```
-POST http://localhost:3000/api/students
-```
-
-Body:
-
-```
-{
-  "name": "Ramesh",
-  "email": "ramesh@gmail.com",
-  "age": 25
-}
-```
-
-Express reads:
-
-```
-req.body.name
-req.body.email
-req.body.age
-```
-
-### Example 4 — `req.headers`
-
-Request header:
-
-```
-Authorization: Bearer demo-token
-```
-
-Express reads:
-
-```
-req.get("Authorization")
-```
-
-### Example 5 — `req.cookies`
-
-First request:
-
-```
-GET http://localhost:3000/set-cookie
-```
-
-Server sends a cookie.
-
-Next request:
-
-```
-GET http://localhost:3000/api/cookies
-```
-
-Browser or cookie-enabled client sends the cookie back. Express reads it using:
-
-```
-req.cookies.username
-```
-
-## 8. Output
-
-Here are the expected outputs.
-
-| Request                                | Expected result               |
-| -------------------------------------- | ----------------------------- |
-| `GET /api/students/101`                | Student ID: `"101"`           |
-| `GET /api/search?department=IT&page=2` | Department: `"IT"`, page: `2` |
-| `POST /api/students`                   | Student information           |
-| `GET /api/headers`                     | Authorization header          |
-| `GET /api/cookies`                     | Username cookie or `null`     |
-
-Example response:
-
-```
-{
-  "message": "Student ID received",
-  "studentId": "101"
-}
-```
-
-## 9. Line-by-line explanation
-
-Let's understand the most important lines.
-
-1\. Import Express
+### Step 4: Use validation in routes
 
 ```
 const express = require("express");
+
+const router = express.Router();
+
+const validateStudent = require("../middleware/validateStudent");
+
+const { createStudent } = require("../controllers/studentController");
+
+router.post("/", validateStudent, createStudent);
+
+module.exports = router;
 ```
 
-Loads the Express package into your application.
+Remember: The validation middleware runs before `createStudent`.
 
-2\. Create an Express application
+## 12. Practical Student API — Postman Testing
 
-```
-const app = express();
-```
+Let's test our API.
 
-Creates the application instance. You use `app` to configure middleware and routes.
+### Valid request
 
-3\. Parse JSON
+Expected: 201 Created
 
-```
-app.use(express.json());
-```
+Method: POST
 
-Reads JSON request bodies and makes the parsed data available through `req.body`.
-
-4\. Parse cookies
+URL:
 
 ```
-app.use(cookieParser());
+http://localhost:3000/api/students
 ```
 
-Reads cookies sent by the client and makes them available through `req.cookies`.
-
-5\. Read route parameters
-
-```
-const id = req.params.id;
-```
-
-Reads the `id` value from the URL path.
-
-6\. Read query parameters
-
-```
-const page = req.query.page;
-```
-
-Reads the `page` value from the URL query string.
-
-7\. Read body data
-
-```
-const name = req.body.name;
-```
-
-Reads the `name` property from the request body.
-
-8\. Read headers
-
-```
-const token = req.get("Authorization");
-```
-
-Reads the Authorization header.
-
-9\. Read cookies
-
-```
-const username = req.cookies.username;
-```
-
-Reads the `username` cookie parsed by `cookie-parser`.
-
-## 10. Practical Example — Student Management API
-
-Let's compare all five request properties.
-
-| Property      | Example                       | When should you use it?                 |
-| ------------- | ----------------------------- | --------------------------------------- |
-| `req.params`  | `/students/101`               | Identify a specific student             |
-| `req.query`   | `/students?department=IT`     | Filter or search students               |
-| `req.body`    | `{ "name": "Ramesh" }`        | Create or update student data           |
-| `req.headers` | `Authorization: Bearer token` | Read authentication or request metadata |
-| `req.cookies` | `username=Ramesh`             | Read browser cookie/session information |
-
-### One practical route using multiple properties
-
-```
-app.get("/api/students/:id", (req, res) => {
-
-    // 1. Read student ID from URL path
-    const id = Number(req.params.id);
-
-    // 2. Read includeMarks from query string
-    const includeMarks = req.query.includeMarks === "true";
-
-    // 3. Read optional authorization header
-    const authorization = req.get("Authorization");
-
-    // 4. Read username cookie
-    const username = req.cookies.username;
-
-    // Send response
-    res.json({
-        studentId: id,
-        includeMarks: includeMarks,
-        hasAuthorization: Boolean(authorization),
-        username: username || null
-    });
-});
-```
-
-Request:
-
-```
-GET http://localhost:3000/api/students/101?includeMarks=true
-```
-
-Possible response:
+Body → raw → JSON:
 
 ```
 {
-  "studentId": 101,
-  "includeMarks": true,
-  "hasAuthorization": false,
-  "username": null
+    "name": "Ramesh",
+    "age": 25,
+    "course": "Node.js",
+    "email": "ramesh@gmail.com"
 }
 ```
 
-Here we used four request properties in one route. The body is not needed for this GET request.
-
-### Test using Postman
-
-[Mastering API Testing with Postman: A Complete Guide for Developers](https://images.openai.com/static-rsc-4/sGRFCAAanc0zJNhTO3S1brsIdtHdQy-lRmrijURgaVQ-RQYlHhAiLAmTLmwatjjIzInaEI4qmnHaKqRVY27QLVKfkxWwX19G6MuwstrQTZOgWW4LzUC_02RfRVd26s6dMfnc6Ed_Vu52gAuYCKbvPKyHy6q8etPX9d2HPEkFAt8?purpose=inline)
-
-[Authorization Bearer Token Example](https://images.openai.com/static-rsc-4/mBTJl784W7g9bNiU5vOyIGdy5GtLqmHZjjHY_vElxZtMwkV_U1xm01EYTtxHm7AN_1bDXJLsXPHpAt2GLNXNxvWnoMrWwRWV5eqlDT2NxHFI4uxJohi289Y9T1yR6fRtakNrBfjRM9xyZxUe64SNHb7AIkzMvDrhF4feu8PYAUw?purpose=inline)
-
-[Postman - POST Requests](https://images.openai.com/static-rsc-4/UQI52XlIjZT9C_hCLz3M0DBvY6Kenutsqcqsj3asckYbvg3MgLsk5oxqBC1onodAfngDjOyJPaDMpDKbYBy5Rd53aK0Mgr_4jRXz3yQQM5d6llgy4cMucPHD_329HGX4TyY9Ua9tNM2tAQUxu_aiEsLs7Hm9JdGv-6GGOZc8iuk?purpose=inline)
-
-1. Select the HTTP method.
-2. Enter the API URL.
-3. For `req.params`, enter the ID in the URL.
-4. For `req.query`, use the Params tab.
-5. For `req.body`, select Body → raw → JSON.
-6. For `req.headers`, use the Headers tab.
-7. For `req.cookies`, use the Cookies manager or a client that sends cookies.
-
-Important: When making cross-origin browser requests with cookies, the client must send credentials and the server's CORS configuration must allow credentials for the trusted origin.
-
-## 11. Common mistakes
-
-| Mistake                                   | Correct approach                      |
-| ----------------------------------------- | ------------------------------------- |
-| Using `req.param` instead of `req.params` | Use `req.params`                      |
-| Reading JSON without middleware           | Add `express.json()`                  |
-| Assuming query values are numbers         | Convert and validate them             |
-| Assuming cookies are automatically parsed | Install and register `cookie-parser`  |
-| Using `req.body` for URL path IDs         | Use `req.params`                      |
-| Putting large data in URL query strings   | Send appropriate data in request body |
-| Exposing authentication tokens            | Avoid exposing or logging secrets     |
-| Trusting client input                     | Validate all incoming data            |
-
-## 12. Best practices
-
-1. Use `req.params` for resource identifiers.
-2. Use `req.query` for filters, search, sorting, and pagination.
-3. Use `req.body` for submitted data.
-4. Use `req.headers` for metadata and authentication information.
-5. Use `req.cookies` for cookie-based session information.
-6. Validate every value received from the client.
-7. Convert strings into numbers or booleans when needed.
-8. Use secure cookie settings for production.
-9. Never trust incoming data automatically.
-10. Keep request parsing middleware before the routes that need it.
-
-### Middleware execution order
+Expected response:
 
 ```
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-// Routes should come after these middleware functions.
-app.use("/api/students", studentRoutes);
+{
+    "message": "Student created successfully",
+    "data": {
+        "id": 1,
+        "name": "Ramesh",
+        "age": 25,
+        "course": "Node.js"
+    }
+}
 ```
 
-## 13. Interview questions
+### Invalid request
 
-Q1. What is `req.params`?
-
-It reads values from the URL path.
-
-Example: `/students/101`.
-
-Q2. What is `req.query`?
-
-It reads values from the URL query string.
-
-Example: `/students?page=1`.
-
-Q3. What is `req.body`?
-
-It reads data sent inside the HTTP request body.
-
-Q4. Why do we use `express.json()`?
-
-To parse incoming JSON request bodies.
-
-Q5. What is `req.headers`?
-
-It reads request metadata such as Authorization and Content-Type.
-
-Q6. What is `req.cookies`?
-
-It reads cookies sent by the client after cookie-parsing middleware is configured.
-
-Q7. Does Express automatically parse cookies?
-
-No. A package such as `cookie-parser` is commonly used.
-
-Q8. What is the difference between params and query?
-
-- Params identify a resource.
-- Query parameters filter, search, sort, or paginate resources.
-
-Q9. Are route parameters and query parameters strings?
-
-Usually yes. Convert and validate them when you need numbers or other types.
-
-Q10. What is the difference between `req.body` and `req.headers`?
-
-- Body contains submitted request data.
-- Headers contain request metadata and instructions.
-
-## 14. Practice problems
-
-Try these exercises in VS Code and Postman.
-
-Exercise 1 — Route Parameters
-
-Create this API:
+Expected: 400 Bad Request
 
 ```
-GET /api/books/:id
+{
+    "name": "",
+    "age": -10,
+    "course": "",
+    "email": "invalid-email"
+}
 ```
 
-Read the book ID using `req.params`.
-
-Exercise 2 — Query Parameters
-
-Create this API:
+Expected validation errors:
 
 ```
-GET /api/products?category=mobile
+{
+    "errors": [
+        {
+            "msg": "Name is required"
+        },
+        {
+            "msg": "Age must be a positive integer"
+        },
+        {
+            "msg": "Course is required"
+        },
+        {
+            "msg": "Enter a valid email"
+        }
+    ]
+}
 ```
 
-Read the category using `req.query`.
+The exact error objects returned by express-validator can include additional fields such as type, location, path and value.
 
-Exercise 3 — Request Body
+## 13. Common Validation Mistakes
 
-Create this API:
+| Mistake                                    | Correct approach             |
+| ------------------------------------------ | ---------------------------- |
+| Not checking required fields               | Check every required field   |
+| Not using `express.json()`                 | Add JSON middleware          |
+| Using only frontend validation             | Validate on backend too      |
+| Checking only `!age`                       | Use explicit number checks   |
+| Not trimming strings                       | Use `.trim()`                |
+| Returning status 200 for invalid data      | Use 400 or 422               |
+| Not using `return` after an error response | Use `return res.status(...)` |
+
+## 14. Best Practices
+
+1. Always validate incoming data on the backend.
+2. Keep validation rules reusable.
+3. Use clear error messages.
+4. Check data types and allowed ranges.
+5. Trim string inputs when appropriate.
+6. Use libraries for complex validation.
+7. Never trust data just because frontend validation passed.
+8. Do not expose internal server errors to clients.
+
+## 15. Interview Questions
+
+## 16. Practice Problems
+
+Try these small exercises.
+
+- Check whether a username is empty.
+- Check whether a password has at least 8 characters.
+- Check whether age is between 18 and 60.
+- Check whether price is greater than zero.
+- Check whether email has a valid format.
+- Create a validation middleware for an employee API.
+
+## 17. Mini Challenge — Product API Validation
+
+Try it yourself
+
+Create a Product API with these fields:
 
 ```
-POST /api/users
+{
+    "name": "Laptop",
+    "price": 50000,
+    "category": "Electronics",
+    "stock": 10
+}
 ```
-
-Receive name, email, and password using `req.body`. Do not return the password in the response.
-
-Exercise 4 — Headers
-
-Create this API:
-
-```
-GET /api/profile
-```
-
-Read the Authorization header.
-
-Exercise 5 — Cookies
-
-Create APIs to set, read, and clear a username cookie.
-
-## 15. Mini Challenge — Student API
-
-Your task
-
-Build an API that uses all five request properties.
 
 Requirements:
 
-1. Read student ID from `req.params`.
-2. Read department from `req.query`.
-3. Receive student details using `req.body`.
-4. Read Authorization from `req.headers`.
-5. Read username from `req.cookies`.
+| Field    | Validation rule      |
+| -------- | -------------------- |
+| name     | Required string      |
+| price    | Positive number      |
+| category | Required string      |
+| stock    | Non-negative integer |
 
-Expected API design:
+### Your task
 
-| Method | Endpoint                      | Purpose                |
-| ------ | ----------------------------- | ---------------------- |
-| GET    | `/api/students/:id`           | Read student ID        |
-| GET    | `/api/students?department=IT` | Filter students        |
-| POST   | `/api/students`               | Create student         |
-| GET    | `/api/profile`                | Read header and cookie |
+Step 1 — Requirement
 
-### Logic-building exercise
+Create a validation middleware called `validateProduct`.
 
-Before writing code, think about these steps:
+Step 2 — Input
 
 ```
-Step 1: What is the input?
-Step 2: Where does the input come from?
-Step 3: Which req property should I use?
-Step 4: How do I validate the input?
-Step 5: What response should I send?
+{
+    "name": "",
+    "price": -500,
+    "category": "",
+    "stock": -5
+}
 ```
 
-Try writing the code yourself before checking your notes.
+Step 3 — Expected output
 
-## 16. Chapter summary
+```
+{
+    "success": false,
+    "errors": [
+        "Product name is required",
+        "Price must be greater than zero",
+        "Category is required",
+        "Stock must be a non-negative integer"
+    ]
+}
+```
 
-You learned five important Express request properties:
+Step 4 — Logic hint
 
-1
+```
+Receive product data
+       |
+       v
+Check name
+       |
+       v
+Check price
+       |
+       v
+Check category
+       |
+       v
+Check stock
+       |
+       v
+Are errors present?
+       |
+    +--+--+
+    |     |
+   Yes    No
+    |     |
+    v     v
+ Return  Continue
+ 400     to controller
+```
 
-`req.params`
+Step 5 — Pseudocode
 
-URL path
+```
+Create validateProduct middleware
 
-Example: `/students/101`
+Get product fields from req.body
 
-2
+Create empty errors array
 
-`req.query`
+If name is invalid:
+    Add name error
 
-URL query
+If price is invalid:
+    Add price error
 
-Example: `/students?page=1`
+If category is invalid:
+    Add category error
 
-3
+If stock is invalid:
+    Add stock error
 
-`req.body`
+If errors exist:
+    Return 400 response
 
-Request body
+Otherwise:
+    Call next()
+```
 
-Example: `{ "name": "Ramesh" }`
+Try writing the middleware yourself. I will review your code and explain any mistakes.
 
-4
+## 18. Chapter Summary
 
-`req.headers`
+| Concept             | Meaning                          |
+| ------------------- | -------------------------------- |
+| Validation          | Checking incoming data           |
+| Required validation | Checking mandatory fields        |
+| String validation   | Checking string values           |
+| Number validation   | Checking numeric values          |
+| Email validation    | Checking email format            |
+| Middleware          | Checks request before controller |
+| `next()`            | Moves to next middleware         |
+| `express-validator` | Validation library               |
+| Sanitization        | Cleaning input data              |
 
-Request metadata
+### Quick Revision
 
-Example: `Authorization`
-
-5
-
-`req.cookies`
-
-Client cookies
-
-Example: `username=Ramesh`
-
-## 17. Quick revision
-
-Test your understanding.
-
-Chapter 25 Quiz
-
-0/5 answered
-
-1\. Which property reads an ID from /students/101?
-
-req.body
-
-req.params
-
-req.headers
-
-
-
-2\. Which middleware parses JSON request bodies?
-
-express.json()
-
-cookieParser()
-
-express.static()
-
-
-
-3\. Which property is used for /products?page=2?
-
-req.params
-
-req.query
-
-req.cookies
-
-
-
-4\. Which package commonly parses cookies?
-
-mongoose
-
-cookie-parser
-
-nodemon
-
-
-
-5\. Which property reads the Authorization header?
-
-req.headers
-
-req.body
-
-req.params
-
-
-
-Check my answers
+- Validation = Check data.
+- Sanitization = Clean data.
+- Middleware = Check before controller.
+- 400 = Bad Request.
+- `next()` = Continue execution.
 
 Chapter 25 Completed
 
-You have now completed Express.js Request Data.
+Next: Chapter 26 — REST API Testing with Postman
 
-Your next chapter in the syllabus is Chapter 26 — Express.js Project Structure and Professional API Organization.
+We will learn how to test GET, POST, PUT, PATCH and DELETE APIs, inspect responses, test error cases, and organize API requests into collections.
 
-Type NEXT when you are ready.
+Type NEXT to start Chapter 26.

@@ -2,328 +2,254 @@
 
 # Chapter 19 — Express Middleware
 
-Beginner to Advanced • GitHub README Notes • Node.js + Express.js
-
-In this chapter, you will learn how Express middleware works, how a request travels through middleware, and how to build Logger, Authentication, and Validation middleware.
+BEGINNER LEVEL → PRACTICAL LEVEL
 
 ## 📚 Table of Contents
 
 1. What is Middleware?
-2. Why Do We Need Middleware?
-3. Real-World Analogy
-4. Request Lifecycle
+2. Why do we need Middleware?
+3. Real-world Analogy
+4. Middleware Request Flow
 5. Middleware Syntax
 6. Basic Middleware Example
-7. Dry Run
-8. Output
+7. Middleware Dry Run
+8. Middleware Output
 9. Line-by-Line Explanation
-10. Types of Middleware
-11. Common Mistakes
-12. Best Practices
-13. Interview Questions
-14. Practice Problems
-15. Mini Challenge
-16. Chapter Summary
-17. Quick Revision
+10. Practical Example — Student API
+11. Types of Middleware
+12. Common Mistakes
+13. Best Practices
+14. Interview Questions
+15. Practice Problems
+16. Mini Challenge
+17. Chapter Summary & Quick Revision
 
 ## 1. 🧠 What is Middleware?
 
-Definition: Middleware is a function that executes during the request-response cycle of an Express application.
+Middleware is a function that runs between the incoming request and the final response.
 
-Middleware can:
+In simple words:
 
-- Execute some code.
-- Read or modify the request (`req`).
-- Read or modify the response (`res`).
-- End the request-response cycle.
-- Pass control to the next middleware using `next()`.
+When a client sends a request to the Express server, middleware gets a chance to process that request before the route sends a response.
 
-Simple example: Before allowing a user to access a protected API, middleware can check whether the user is authenticated.
+### Middleware function
 
-### Basic middleware structure
+```
+(req, res, next) => {
+    // Middleware logic
+}
+```
+
+There are three important parameters:
+
+| Parameter | Meaning                                                |
+| --------- | ------------------------------------------------------ |
+| `req`     | Contains request information                           |
+| `res`     | Used to send a response                                |
+| `next`    | Passes control to the next middleware or route handler |
+
+### Simple example
 
 ```
 function myMiddleware(req, res, next) {
-    console.log("Middleware executed");
+    console.log("Middleware is running");
 
     next();
 }
 ```
 
-Important words:
+Important: `next()` tells Express to continue to the next middleware or route handler.
 
-| Keyword | Meaning                                          |
-| ------- | ------------------------------------------------ |
-| `req`   | Contains client request information              |
-| `res`   | Used to send a response to the client            |
-| `next`  | Passes control to the next middleware or handler |
+## 2. 🤔 Why do we need Middleware?
 
-## 2. ❓ Why Do We Need Middleware?
+Imagine you are developing a Student Management API.
 
-Imagine you are building a Book Management API.
-
-You have many routes:
+You have these routes:
 
 ```
-GET     /books
-POST    /books
-GET     /books/1
-PUT     /books/1
-DELETE  /books/1
+GET     /students
+GET     /students/1
+POST    /students
+PUT     /students/1
+DELETE  /students/1
 ```
 
-You may need to perform the same tasks for multiple routes:
+Before processing these requests, you may need to:
 
 - Check whether the user is logged in.
-- Check whether the request contains valid data.
-- Record the request details.
+- Check the request body.
+- Display request information in the terminal.
+- Check whether the user has permission.
 - Handle errors.
-- Parse JSON request data.
 
 Without middleware, you might repeat the same code inside every route.
 
-Middleware helps us reuse common logic instead of writing the same code repeatedly.
+Middleware helps us write reusable code.
 
-### Without middleware
+## 3. 🌍 Real-world Analogy
 
-```
-app.get("/books", (req, res) => {
-    console.log("Request received");
-    res.send("Books");
-});
-
-app.get("/students", (req, res) => {
-    console.log("Request received");
-    res.send("Students");
-});
-
-app.get("/courses", (req, res) => {
-    console.log("Request received");
-    res.send("Courses");
-});
-```
-
-Here, we repeat the logging code.
-
-### With middleware
+Imagine entering an office building.
 
 ```
-function logger(req, res, next) {
-    console.log("Request received");
-
-    next();
-}
-
-app.use(logger);
-
-app.get("/books", (req, res) => {
-    res.send("Books");
-});
-
-app.get("/students", (req, res) => {
-    res.send("Students");
-});
-
-app.get("/courses", (req, res) => {
-    res.send("Courses");
-});
+You arrive at the office
+        |
+        v
+Security checks your ID
+        |
+        v
+Reception checks your details
+        |
+        v
+Manager gives permission
+        |
+        v
+You enter the office
 ```
 
-Now one middleware function can handle logging for all these routes.
-
-## 3. 🏢 Real-World Analogy
-
-Imagine you are entering an office building.
-
-[Visitor Management System for Offices and Modern Workplaces](https://images.openai.com/static-rsc-4/3tKF4fqKyJp020_IM6i25qiMqRHnZQJiTShuCaUoYM2SSeJGSK_-PyupVzb7FODsNf6hPk3LJcLSqHNfwV-rd1FiggUEsaOz13389Xezd64sjnezLeBD8KMctpw4vdoREaU6_-HbPUYoel1EPSoUimE4lyzC9X0JF2A_ajGbmNQ?purpose=inline)
-
-[digitalreception.app](https://digitalreception.app/blog/visitor-management-system-for-offices-and-modern-workplaces?utm_source=chatgpt.com)
-
-Before entering the office:
-
-1. Security checks your identity.
-2. Reception verifies your appointment.
-3. You receive permission to enter.
-4. You reach your destination.
-
-Express middleware works in a similar way.
-
-| Office building          | Express.js                |
-| ------------------------ | ------------------------- |
-| Visitor                  | Client                    |
-| Security check           | Authentication middleware |
-| Appointment verification | Validation middleware     |
-| Entry permission         | `next()`                  |
-| Office room              | Route handler             |
-| Entry denied             | Error response            |
-
-Middleware acts like a checkpoint between the client and the route handler.
-
-## 4. 🔄 Request Lifecycle
-
-When a client sends an HTTP request, Express processes it through middleware and eventually sends a response.
-
-### Visual flowchart
+Express middleware works similarly:
 
 ```
-          CLIENT
-            |
-            | HTTP REQUEST
-            v
-      EXPRESS SERVER
-            |
-            v
-    +------------------+
-    |  Logger          |
-    |  Middleware      |
-    +------------------+
-            |
-            v
-    +------------------+
-    |  Authentication  |
-    |  Middleware      |
-    +------------------+
-            |
-            v
-    +------------------+
-    |  Validation      |
-    |  Middleware      |
-    +------------------+
-            |
-            v
-    +------------------+
-    |  ROUTE HANDLER   |
-    +------------------+
-            |
-            v
-       HTTP RESPONSE
-            |
-            v
-          CLIENT
+Client Request
+      |
+      v
+Logger Middleware
+      |
+      v
+Authentication Middleware
+      |
+      v
+Validation Middleware
+      |
+      v
+Route Handler
+      |
+      v
+Response to Client
 ```
 
-Important: Middleware executes in the order in which it is registered.
+Each middleware performs a particular task.
 
-### What happens if authentication fails?
+## 4. 🔄 Middleware Request Flow
+
+Let's understand the request flow with an example.
 
 ```
-       CLIENT REQUEST
-             |
-             v
-     AUTHENTICATION
-       MIDDLEWARE
-             |
-             v
-       Is user valid?
-          /     \
-        YES      NO
-         |        |
-         v        v
-      next()   401 ERROR
-         |        |
-         v        v
-    ROUTE       CLIENT
-    HANDLER
+Client
+  |
+  | GET /students
+  v
+Express Server
+  |
+  v
+Middleware 1: Logger
+  |
+  | next()
+  v
+Middleware 2: Authentication
+  |
+  | next()
+  v
+Route Handler: GET /students
+  |
+  v
+Send JSON Response
+  |
+  v
+Client
 ```
 
-If middleware sends a response, it does not need to call `next()`.
+### What happens?
+
+1. Client sends a request.
+2. Logger middleware prints request information.
+3. Authentication middleware checks access.
+4. If allowed, it calls `next()`.
+5. Express executes the route handler.
+6. Server sends a response.
+
+If authentication fails, middleware can send an error response directly without calling `next()`.
 
 ## 5. 📝 Middleware Syntax
 
-### General syntax
-
 ```
-app.use((req, res, next) => {
+function middlewareName(req, res, next) {
 
-    // Middleware logic
-
-    next();
-
-});
-```
-
-### Explanation
-
-- `app.use()` — Registers middleware.
-- `req` — Request object.
-- `res` — Response object.
-- `next()` — Moves control forward.
-
-### Named middleware
-
-```
-function checkRequest(req, res, next) {
-
-    console.log("Checking request");
+    // Perform some operation
 
     next();
 }
-
-app.use(checkRequest);
 ```
 
-You can create middleware separately and register it using `app.use()`.
+Register middleware using `app.use()`:
+
+```
+app.use(middlewareName);
+```
+
+### Important methods
+
+| Method         | Purpose                                 |
+| -------------- | --------------------------------------- |
+| `app.use()`    | Registers middleware                    |
+| `next()`       | Moves to the next middleware or handler |
+| `req.method`   | Gets HTTP method                        |
+| `req.url`      | Gets requested URL                      |
+| `req.headers`  | Gets request headers                    |
+| `res.status()` | Sets HTTP status                        |
+| `res.json()`   | Sends JSON response                     |
 
 ## 6. 💻 Basic Middleware Example
 
-### Step 1: Create project
+Let's create our first Express middleware.
+
+### Project structure
 
 ```
-mkdir middleware-demo
+middleware-demo/
+│
+├── server.js
+└── package.json
+```
 
-cd middleware-demo
+### Step 1: Install Express
 
+```
 npm init -y
-
 npm install express
 ```
 
 ### Step 2: Create `server.js`
 
 ```
+// Import Express
 const express = require("express");
 
+// Create Express application
 const app = express();
 
-const PORT = 3000;
-
-// =================================
-// CUSTOM MIDDLEWARE
-// =================================
-
+// Create middleware
 function myMiddleware(req, res, next) {
 
-    console.log("Middleware executed");
+    console.log("Middleware is running");
 
+    // Move to the next handler
     next();
 }
 
 // Register middleware
 app.use(myMiddleware);
 
-// =================================
-// ROUTES
-// =================================
-
+// Create route
 app.get("/", (req, res) => {
 
-    res.send("Welcome to Express");
+    res.send("Welcome to Express Middleware");
 
 });
 
-app.get("/books", (req, res) => {
+// Start server
+app.listen(3000, () => {
 
-    res.send("Book List");
-
-});
-
-// =================================
-// START SERVER
-// =================================
-
-app.listen(PORT, () => {
-
-    console.log(`Server running on port ${PORT}`);
+    console.log("Server running on port 3000");
 
 });
 ```
@@ -334,55 +260,80 @@ app.listen(PORT, () => {
 node server.js
 ```
 
-### Step 4: Test in browser
+Open this URL:
 
 ```
 http://localhost:3000/
 ```
 
-```
-http://localhost:3000/books
-```
+## 7. 🔍 Middleware Dry Run
 
-## 7. 🔍 Dry Run
+Let's understand what happens when we send a request.
 
-Let's understand what happens when you visit:
+### Request
 
 ```
-http://localhost:3000/books
+GET http://localhost:3000/
 ```
 
-| Step | Execution                 | Result           |
-| ---- | ------------------------- | ---------------- |
-| 1    | Client sends GET request  | `/books`         |
-| 2    | Express receives request  | Request received |
-| 3    | `myMiddleware()` executes | Logs message     |
-| 4    | `next()` executes         | Passes control   |
-| 5    | `/books` route matches    | Route executes   |
-| 6    | `res.send()` executes     | Sends response   |
+### Execution steps
 
-Remember: `next()` tells Express to continue processing the request.
+Step 1: Express receives the request.
+
+Step 2: Express checks registered middleware.
+
+```
+app.use(myMiddleware);
+```
+
+Step 3: Middleware executes.
+
+```
+console.log("Middleware is running");
+```
+
+Terminal output:
+
+```
+Middleware is running
+```
+
+Step 4: Middleware calls:
+
+```
+next();
+```
+
+Step 5: Express executes the route:
+
+```
+app.get("/", (req, res) => {
+    res.send("Welcome to Express Middleware");
+});
+```
+
+Step 6: Server sends the response.
 
 ## 8. 📤 Output
 
-### Browser output
+Expected output
+
+Browser response:
 
 ```
-Book List
+Welcome to Express Middleware
 ```
 
-### Terminal output
+VS Code terminal:
 
 ```
 Server running on port 3000
-
-Middleware executed
-Middleware executed
+Middleware is running
 ```
 
-You will see the middleware message whenever you make a request to a route registered after this application-level middleware.
+Every time you refresh the browser, the middleware runs again.
 
-## 9. 🔬 Line-by-Line Explanation
+## 9. 🔎 Line-by-Line Explanation
 
 ```
 function myMiddleware(req, res, next) {
@@ -390,8 +341,12 @@ function myMiddleware(req, res, next) {
 
 Creates a middleware function.
 
+- `req`: Request data.
+- `res`: Response object.
+- `next`: Function to continue execution.
+
 ```
-console.log("Middleware executed");
+console.log("Middleware is running");
 ```
 
 Prints a message in the terminal.
@@ -400,148 +355,221 @@ Prints a message in the terminal.
 next();
 ```
 
-Passes control to the next middleware or matching route handler.
+Passes control to the next middleware or route handler.
 
 ```
 app.use(myMiddleware);
 ```
 
-Registers the middleware with the Express application.
+Registers middleware for incoming requests that match its mounting path. Here, it is registered globally.
+
+Remember: If middleware neither sends a response nor calls `next()`, the request may remain pending.
+
+## 10. 🏗️ Practical Example — Student API
+
+Now let's create a practical middleware example using real data.
+
+### Step 1: Create student data
 
 ```
-app.get("/books", (req, res) => {
-    res.send("Book List");
-});
+let students = [
+    {
+        id: 1,
+        name: "Ramesh",
+        course: "Node.js",
+        age: 25
+    },
+    {
+        id: 2,
+        name: "Kumar",
+        course: "React.js",
+        age: 24
+    },
+    {
+        id: 3,
+        name: "Suresh",
+        course: "Python",
+        age: 26
+    }
+];
 ```
 
-Creates a GET route that sends the response.
-
-### Test your understanding
-
-## 10. 🧩 Types of Middleware
-
-Express middleware can be divided into several types.
-
-### 10.1 Application-Level Middleware
-
-Definition: Application-level middleware is middleware registered on an Express application using `app.use()` or an HTTP method such as `app.get()`.
-
-Example:
-
-```
-const express = require("express");
-
-const app = express();
-
-// Application-level middleware
-app.use((req, res, next) => {
-
-    console.log("Application middleware");
-
-    next();
-
-});
-
-app.get("/", (req, res) => {
-
-    res.send("Home Page");
-
-});
-
-app.listen(3000);
-```
-
-This middleware runs for requests that pass through its registration point and match its mounted path.
-
-### 10.2 Router-Level Middleware
-
-Definition: Router-level middleware is middleware attached to an Express Router instance.
-
-It is useful when you have multiple routes related to one module.
-
-Example:
+### Step 2: Complete code — `server.js`
 
 ```
 const express = require("express");
 
 const app = express();
 
-const router = express.Router();
+const PORT = 3000;
 
-// Router-level middleware
-router.use((req, res, next) => {
-
-    console.log("Book router middleware");
-
-    next();
-
-});
-
-// Book routes
-router.get("/", (req, res) => {
-
-    res.send("All Books");
-
-});
-
-router.get("/:id", (req, res) => {
-
-    res.send("Single Book");
-
-});
-
-// Register router
-app.use("/books", router);
-
-app.listen(3000);
-```
-
-Test:
-
-```
-GET http://localhost:3000/books
-GET http://localhost:3000/books/1
-```
-
-Router middleware applies to requests handled by that router after the middleware is registered.
-
-### 10.3 Built-in Middleware
-
-Definition: Built-in middleware is middleware provided by Express itself.
-
-Important built-in middleware:
-
-| Middleware             | Purpose                             |
-| ---------------------- | ----------------------------------- |
-| `express.json()`       | Parses incoming JSON request bodies |
-| `express.urlencoded()` | Parses URL-encoded request bodies   |
-| `express.static()`     | Serves static files                 |
-
-#### Example 1: express.json()
-
-```
-const express = require("express");
-
-const app = express();
-
-// Parse incoming JSON data
+// Read JSON request body
 app.use(express.json());
 
-app.post("/students", (req, res) => {
+// ==================================
+// MIDDLEWARE 1: LOGGER
+// ==================================
 
-    console.log(req.body);
+function logger(req, res, next) {
 
-    res.json({
-        message: "Student received",
-        data: req.body
+    console.log("Request Method:", req.method);
+
+    console.log("Request URL:", req.url);
+
+    console.log("Request Time:", new Date().toLocaleString());
+
+    next();
+}
+
+// Register logger middleware
+app.use(logger);
+
+// ==================================
+// RAW STUDENT DATA
+// ==================================
+
+let students = [
+    { id: 1, name: "Ramesh", course: "Node.js", age: 25 },
+    { id: 2, name: "Kumar", course: "React.js", age: 24 },
+    { id: 3, name: "Suresh", course: "Python", age: 26 }
+];
+
+// ==================================
+// ROUTES
+// ==================================
+
+// GET: All students
+app.get("/students", (req, res) => {
+
+    res.status(200).json({
+        message: "Students fetched successfully",
+        data: students
     });
 
 });
 
-app.listen(3000);
+// GET: Student by ID
+app.get("/students/:id", (req, res) => {
+
+    const id = Number(req.params.id);
+
+    const student = students.find((item) => item.id === id);
+
+    if (!student) {
+
+        return res.status(404).json({
+            message: "Student not found"
+        });
+
+    }
+
+    res.status(200).json({
+        message: "Student found",
+        data: student
+    });
+
+});
+
+// POST: Create student
+app.post("/students", (req, res) => {
+
+    const { name, course, age } = req.body;
+
+    if (!name || !course || age === undefined) {
+
+        return res.status(400).json({
+            message: "Name, course and age are required"
+        });
+
+    }
+
+    const newStudent = {
+        id: students.length
+            ? Math.max(...students.map((item) => item.id)) + 1
+            : 1,
+        name,
+        course,
+        age
+    };
+
+    students.push(newStudent);
+
+    res.status(201).json({
+        message: "Student created successfully",
+        data: newStudent
+    });
+
+});
+
+// DELETE: Student
+app.delete("/students/:id", (req, res) => {
+
+    const id = Number(req.params.id);
+
+    const index = students.findIndex((item) => item.id === id);
+
+    if (index === -1) {
+
+        return res.status(404).json({
+            message: "Student not found"
+        });
+
+    }
+
+    const deletedStudent = students.splice(index, 1)[0];
+
+    res.status(200).json({
+        message: "Student deleted successfully",
+        data: deletedStudent
+    });
+
+});
+
+// Start server
+app.listen(PORT, () => {
+
+    console.log(`Server running on port ${PORT}`);
+
+});
 ```
 
-Postman request:
+### Step 3: Test using Postman
+
+GET all students
+
+```
+GET http://localhost:3000/students
+```
+
+Expected data:
+
+```
+{
+    "message": "Students fetched successfully",
+    "data": [
+        {
+            "id": 1,
+            "name": "Ramesh",
+            "course": "Node.js",
+            "age": 25
+        },
+        {
+            "id": 2,
+            "name": "Kumar",
+            "course": "React.js",
+            "age": 24
+        },
+        {
+            "id": 3,
+            "name": "Suresh",
+            "course": "Python",
+            "age": 26
+        }
+    ]
+}
+```
+
+POST — Add a student
 
 ```
 POST http://localhost:3000/students
@@ -551,173 +579,249 @@ Body → raw → JSON:
 
 ```
 {
-    "name": "Ramesh",
-    "age": 25,
-    "course": "Node.js"
+    "name": "Anil",
+    "course": "FastAPI",
+    "age": 23
 }
 ```
 
-Expected response:
+After inserting, the raw data becomes:
 
 ```
-{
-    "message": "Student received",
-    "data": {
-        "name": "Ramesh",
-        "age": 25,
-        "course": "Node.js"
-    }
-}
+[
+    { id: 1, name: "Ramesh", course: "Node.js", age: 25 },
+    { id: 2, name: "Kumar", course: "React.js", age: 24 },
+    { id: 3, name: "Suresh", course: "Python", age: 26 },
+    { id: 4, name: "Anil", course: "FastAPI", age: 23 }
+]
 ```
 
-Without `express.json()`, Express does not automatically parse incoming JSON request bodies.
+### What does the middleware print?
 
-#### Example 2: express.urlencoded()
-
-```
-app.use(express.urlencoded({ extended: true }));
-```
-
-This middleware parses form data sent using URL-encoded encoding.
-
-#### Example 3: express.static()
+When you send:
 
 ```
-app.use(express.static("public"));
+GET /students
 ```
 
-Suppose your project contains:
+Terminal:
 
 ```
-project/
-│
-├── server.js
-│
-└── public/
-    ├── index.html
-    └── style.css
+Request Method: GET
+Request URL: /students
+Request Time: 11/6/2026, 10:30:00 PM
 ```
 
-You can access the file:
+The exact time depends on when you send the request.
+
+Important: Logger middleware runs before the route handler because we registered it before the routes.
+
+## 11. 🧩 Types of Middleware
+
+Express middleware can be grouped into different types.
+
+### 1. Application-level Middleware
+
+Middleware registered using `app.use()` or an application method.
 
 ```
-http://localhost:3000/index.html
-```
+function logger(req, res, next) {
 
-### 10.4 Third-Party Middleware
-
-Definition: Third-party middleware is middleware developed by external developers or packages and installed into your project.
-
-Examples:
-
-| Package  | Purpose                            |
-| -------- | ---------------------------------- |
-| `cors`   | Controls cross-origin access       |
-| `morgan` | HTTP request logging               |
-| `helmet` | Adds security-related HTTP headers |
-
-Install:
-
-```
-npm install cors morgan helmet
-```
-
-Example:
-
-```
-const express = require("express");
-
-const cors = require("cors");
-
-const morgan = require("morgan");
-
-const helmet = require("helmet");
-
-const app = express();
-
-// Enable CORS
-app.use(cors());
-
-// Log HTTP requests
-app.use(morgan("dev"));
-
-// Add security headers
-app.use(helmet());
-
-app.get("/", (req, res) => {
-
-    res.send("Middleware Example");
-
-});
-
-app.listen(3000);
-```
-
-Third-party middleware saves development time because you can reuse tested functionality.
-
-### 10.5 Custom Middleware
-
-Definition: Custom middleware is middleware that you create yourself to perform application-specific tasks.
-
-Example:
-
-```
-function welcomeMiddleware(req, res, next) {
-
-    req.message = "Welcome to Node.js";
+    console.log("Request received");
 
     next();
 
 }
 
-app.use(welcomeMiddleware);
-
-app.get("/", (req, res) => {
-
-    res.send(req.message);
-
-});
+app.use(logger);
 ```
 
-Output:
+This middleware runs for requests that match its registered path.
 
-```
-Welcome to Node.js
-```
+### 2. Router-level Middleware
 
-Notice that we added a new property to `req`:
-
-```
-req.message = "Welcome to Node.js";
-```
-
-The next handler can access it.
-
-### 10.6 Error-Handling Middleware
-
-Definition: Error-handling middleware is middleware designed to handle errors that occur during request processing.
-
-Important: Error-handling middleware has four parameters: `err`, `req`, `res`, and `next`.
-
-Syntax:
-
-```
-function errorHandler(err, req, res, next) {
-
-    res.status(500).json({
-        message: "Something went wrong"
-    });
-
-}
-```
-
-Complete example:
+Middleware registered with an Express Router.
 
 ```
 const express = require("express");
 
-const app = express();
+const router = express.Router();
 
+function checkUser(req, res, next) {
+
+    console.log("Router middleware");
+
+    next();
+
+}
+
+router.use(checkUser);
+
+router.get("/students", (req, res) => {
+
+    res.send("Student list");
+
+});
+
+app.use("/api", router);
+```
+
+URL:
+
+```
+http://localhost:3000/api/students
+```
+
+We will study `express.Router()` in Chapter 20.
+
+### 3. Built-in Middleware
+
+Express provides some middleware functions directly.
+
+| Middleware             | Purpose                     |
+| ---------------------- | --------------------------- |
+| `express.json()`       | Reads JSON request body     |
+| `express.urlencoded()` | Reads URL-encoded form data |
+| `express.static()`     | Serves static files         |
+
+Example:
+
+```
+app.use(express.json());
+
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static("public"));
+```
+
+Static files example:
+
+```
+project/
+│
+├── server.js
+└── public/
+    ├── style.css
+    └── logo.png
+```
+
+With `express.static("public")`, these files can be accessed through URLs such as:
+
+```
+http://localhost:3000/logo.png
+```
+
+### 4. Third-party Middleware
+
+Third-party middleware is created by other developers and installed using npm.
+
+Example: Morgan.
+
+Install:
+
+```
+npm install morgan
+```
+
+Use:
+
+```
+const morgan = require("morgan");
+
+app.use(morgan("dev"));
+```
+
+Morgan automatically logs request details in the terminal.
+
+Another example is CORS.
+
+Install:
+
+```
+npm install cors
+```
+
+Use:
+
+```
+const cors = require("cors");
+
+app.use(cors());
+```
+
+CORS helps control which browser origins can access your API.
+
+### 5. Custom Middleware
+
+Custom middleware is middleware that we create ourselves.
+
+Example:
+
+```
+function checkAge(req, res, next) {
+
+    const age = Number(req.query.age);
+
+    if (age < 18 || Number.isNaN(age)) {
+
+        return res.status(403).json({
+            message: "You must be at least 18 years old"
+        });
+
+    }
+
+    next();
+
+}
+
+app.get("/adult", checkAge, (req, res) => {
+
+    res.send("Access granted");
+
+});
+```
+
+Test:
+
+```
+GET http://localhost:3000/adult?age=25
+```
+
+Response:
+
+```
+Access granted
+```
+
+Try:
+
+```
+GET http://localhost:3000/adult?age=15
+```
+
+Response:
+
+```
+{
+    "message": "You must be at least 18 years old"
+}
+```
+
+### 6. Error-handling Middleware
+
+Error middleware has four parameters:
+
+```
+(err, req, res, next) => {
+
+    // Handle error
+
+}
+```
+
+Example:
+
+```
 app.get("/error", (req, res, next) => {
 
     const error = new Error("Something went wrong");
@@ -736,17 +840,9 @@ app.use((err, req, res, next) => {
     });
 
 });
-
-app.listen(3000);
 ```
 
-Test:
-
-```
-GET http://localhost:3000/error
-```
-
-Output:
+Response:
 
 ```
 {
@@ -754,232 +850,64 @@ Output:
 }
 ```
 
-Calling `next(error)` passes the error to Express error-handling middleware.
+Important: Error-handling middleware should be registered after the routes that may pass errors to it.
 
-### 10.7 Logger Middleware — Practical Example
+## 12. ⚠️ Common Mistakes
 
-Requirement: Whenever a client sends a request, display its HTTP method and URL in the terminal.
-
-```
-function loggerMiddleware(req, res, next) {
-
-    console.log("Method:", req.method);
-
-    console.log("URL:", req.url);
-
-    console.log("Time:", new Date().toLocaleString());
-
-    next();
-
-}
-
-app.use(loggerMiddleware);
-```
-
-Example terminal output:
-
-```
-Method: GET
-URL: /books
-Time: 11/6/2026, 10:30:00 PM
-```
-
-Use logger middleware to monitor incoming HTTP requests during development.
-
-### 10.8 Authentication Middleware
-
-Requirement: Allow access to a protected API only when the client provides the correct API token.
-
-```
-function authMiddleware(req, res, next) {
-
-    const token = req.headers.authorization;
-
-    // Check whether token exists
-    if (!token) {
-
-        return res.status(401).json({
-            message: "Authorization token required"
-        });
-
-    }
-
-    // Example: compare with an environment variable
-    if (token !== `Bearer ${process.env.API_TOKEN}`) {
-
-        return res.status(403).json({
-            message: "Invalid token"
-        });
-
-    }
-
-    // Token is valid
-    next();
-
-}
-```
-
-Register it for a protected route:
-
-```
-app.get("/profile", authMiddleware, (req, res) => {
-
-    res.json({
-        message: "Welcome to your profile"
-    });
-
-});
-```
-
-For this example, configure `API_TOKEN` in your environment. You can use the `dotenv` package to load a local `.env` file during development.
-
-Important status codes:
-
-| Status | Meaning                              |
-| ------ | ------------------------------------ |
-| `401`  | Authentication is missing or invalid |
-| `403`  | Access is forbidden                  |
-
-This is a learning example. Real applications should use a properly designed authentication system, such as verified JWTs or sessions, and protect secrets.
-
-### 10.9 Validation Middleware
-
-Requirement: Before creating a student, check whether the name and email are provided.
-
-```
-function validateStudent(req, res, next) {
-
-    const { name, email } = req.body;
-
-    // Check name
-    if (!name) {
-
-        return res.status(400).json({
-            message: "Name is required"
-        });
-
-    }
-
-    // Check email
-    if (!email) {
-
-        return res.status(400).json({
-            message: "Email is required"
-        });
-
-    }
-
-    next();
-
-}
-```
-
-Use it in a POST route:
-
-```
-app.use(express.json());
-
-app.post("/students", validateStudent, (req, res) => {
-
-    res.status(201).json({
-        message: "Student created successfully",
-        student: req.body
-    });
-
-});
-```
-
-Valid request:
-
-```
-{
-    "name": "Ramesh",
-    "email": "ramesh@example.com"
-}
-```
-
-Response:
-
-```
-{
-    "message": "Student created successfully",
-    "student": {
-        "name": "Ramesh",
-        "email": "ramesh@example.com"
-    }
-}
-```
-
-Invalid request:
-
-```
-{
-    "name": "Ramesh"
-}
-```
-
-Response:
-
-```
-{
-    "message": "Email is required"
-}
-```
-
-Validation middleware checks incoming data before the route performs its main operation.
-
-## 11. ⚠️ Common Mistakes
-
-### Mistake 1: Forgetting next()
+### Mistake 1: Forgetting `next()`
 
 Incorrect:
 
 ```
-app.use((req, res, next) => {
+function logger(req, res, next) {
 
-    console.log("Middleware");
+    console.log("Request received");
 
-});
+}
 ```
 
-Problem: The request may remain pending because control is not passed forward and no response is sent.
+Why incorrect?
+
+The request may remain pending because middleware neither sends a response nor passes control.
 
 Correct:
 
 ```
-app.use((req, res, next) => {
+function logger(req, res, next) {
 
-    console.log("Middleware");
+    console.log("Request received");
 
     next();
 
-});
+}
 ```
 
-### Mistake 2: Calling next() after sending a response
+### Mistake 2: Calling `next()` after sending a response
 
 Incorrect:
 
 ```
-app.use((req, res, next) => {
+function checkUser(req, res, next) {
 
-    res.send("Hello");
+    res.send("Access denied");
 
     next();
 
-});
+}
 ```
 
-Problem: You are trying to continue processing after sending the response. This can cause errors.
+Why incorrect?
+
+You have already sent a response. Continuing can cause errors such as attempting to send headers twice.
 
 Correct:
 
 ```
-app.use((req, res, next) => {
+function checkUser(req, res, next) {
 
-    return res.send("Hello");
+    return res.status(403).send("Access denied");
 
-});
+}
 ```
 
 ### Mistake 3: Wrong middleware order
@@ -998,6 +926,8 @@ app.post("/students", (req, res) => {
 app.use(express.json());
 ```
 
+The JSON parser is registered after the route.
+
 Correct:
 
 ```
@@ -1012,297 +942,256 @@ app.post("/students", (req, res) => {
 });
 ```
 
-Register body-parsing middleware before routes that need the parsed request body.
-
-### Mistake 4: Wrong error middleware parameters
+### Mistake 4: Forgetting `return`
 
 Incorrect:
 
 ```
-app.use((req, res, next) => {
+if (!student) {
 
-    console.log("Error");
+    res.status(404).json({
+        message: "Student not found"
+    });
 
-});
+}
+
+res.json(student);
 ```
 
 Correct:
 
 ```
-app.use((err, req, res, next) => {
+if (!student) {
 
-    res.status(500).json({
-        message: err.message
+    return res.status(404).json({
+        message: "Student not found"
     });
 
-});
+}
+
+res.json(student);
 ```
 
-## 12. ✅ Best Practices
+## 13. ⭐ Best Practices
 
-1. Register middleware in the correct order.
-2. Keep middleware functions small and reusable.
-3. Use `return` when sending an early response.
-4. Validate incoming request data.
-5. Never expose passwords or secret tokens in logs.
-6. Use environment variables for sensitive configuration.
-7. Use centralized error-handling middleware.
-8. Apply authentication middleware to protected routes.
-9. Use third-party middleware when it provides reliable functionality.
-10. Give middleware meaningful names.
+- Register middleware in the correct order.
+- Keep each middleware responsible for one task.
+- Use meaningful names like `logger`, `authenticateUser`, and `validateStudent`.
+- Use `return` after sending an early error response.
+- Never expose sensitive information in error messages.
+- Use environment variables for secrets.
+- Use appropriate HTTP status codes.
+- Keep reusable middleware in a separate folder as your project grows.
 
-### Recommended middleware order
+### Recommended project structure
+
+```
+student-api/
+│
+├── middleware/
+│   ├── logger.js
+│   ├── authMiddleware.js
+│   └── errorMiddleware.js
+│
+├── routes/
+│   └── studentRoutes.js
+│
+├── controllers/
+│
+├── server.js
+└── package.json
+```
+
+### Example: Separate Logger Middleware
+
+`middleware/logger.js`
+
+```
+function logger(req, res, next) {
+
+    console.log(`${req.method} ${req.url}`);
+
+    next();
+
+}
+
+module.exports = logger;
+```
+
+`server.js`
 
 ```
 const express = require("express");
 
-const cors = require("cors");
-
-const morgan = require("morgan");
+const logger = require("./middleware/logger");
 
 const app = express();
 
-// 1. Third-party middleware
-app.use(cors());
-app.use(morgan("dev"));
-
-// 2. Built-in middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// 3. Custom middleware
-app.use((req, res, next) => {
+app.use(logger);
 
-    console.log("Request received");
-
-    next();
-
-});
-
-// 4. Routes
 app.get("/", (req, res) => {
 
     res.send("Home Page");
 
 });
 
-// 5. Error handler
-app.use((err, req, res, next) => {
-
-    res.status(500).json({
-        message: "Internal Server Error"
-    });
-
-});
-
 app.listen(3000);
 ```
 
-## 13. 🎯 Interview Questions
+## 14. 🎯 Interview Questions
 
-### Beginner Level
+## 15. 📝 Practice Problems
 
-### Intermediate Level
+Try these exercises yourself.
 
-### Advanced Level
+- Problem 1: Create middleware that prints `"Welcome to my API"` for every request.
+- Problem 2: Create middleware that displays the HTTP method and URL.
+- Problem 3: Create middleware that checks the user's age.
+- Problem 4: Create middleware that checks whether a username exists in `req.body`.
+- Problem 5: Create middleware that blocks access when a request does not contain an expected API key.
+- Problem 6: Create an error-handling middleware that returns status code `500`.
 
-## 14. 📝 Practice Problems
+## 16. 🏆 Mini Challenge — Student API Authentication
 
-Try these problems in VS Code.
+Requirement: Create a middleware that protects your Student API.
 
-### Beginner Level
+### Step 1: Requirement
 
-- Create middleware that prints `"Welcome to Express"`.
-- Create middleware that prints the current date and time.
-- Create middleware that displays the HTTP method.
-- Create middleware that displays the request URL.
+Only users with a valid API key can access:
 
-### Intermediate Level
+```
+GET /students
+```
 
-- Create a logger middleware for all routes.
-- Create authentication middleware using an environment variable.
-- Create validation middleware for a student API.
-- Create router-level middleware for a book module.
+### Step 2: Input
 
-### Advanced Level
+Expected request header:
 
-- Create a middleware that checks the user's role.
-- Create middleware that checks whether an API key exists.
-- Create centralized error-handling middleware.
-- Build a complete Book Management API using multiple middleware functions.
+```
+x-api-key: my-secret-key
+```
 
-## 15. 🏆 Mini Challenge — Student Management API
+### Step 3: Output
 
-Your turn — don't look for the solution yet!
-
-Requirement: Build a Student Management API using Express middleware.
-
-Your API should contain:
-
-1. A logger middleware.
-2. JSON parsing middleware.
-3. Student validation middleware.
-4. Authentication middleware.
-5. A POST `/students` route.
-6. A GET `/students` route.
-
-### Step 1 — Understand the requirement
-
-We need to create a student API and protect the POST route using middleware.
-
-### Step 2 — Input
-
-Example POST request:
+If the key is correct:
 
 ```
 {
-    "name": "Ramesh",
-    "email": "ramesh@example.com",
-    "course": "Node.js"
+    "message": "Access granted"
 }
 ```
 
-### Step 3 — Expected output
+If the key is missing or incorrect:
 
 ```
 {
-    "message": "Student created successfully"
+    "message": "Unauthorized access"
 }
 ```
 
-### Step 4 — Break into steps
+### Step 4: Break into steps
+
+1. Create an authentication middleware.
+2. Read the API key from `req.headers`.
+3. Compare it with the expected key.
+4. If correct, call `next()`.
+5. Otherwise, return status `401`.
+
+### Step 5: Hint
+
+Read the request header using:
 
 ```
-CLIENT
-  |
-  v
-LOGGER MIDDLEWARE
-  |
-  v
-JSON MIDDLEWARE
-  |
-  v
-AUTHENTICATION MIDDLEWARE
-  |
-  v
-VALIDATION MIDDLEWARE
-  |
-  v
-POST /students
-  |
-  v
-RESPONSE
+req.headers["x-api-key"]
 ```
 
-### Step 5 — Hint
-
-You need these functions:
-
-```
-function logger(req, res, next) {
-
-    // Your code
-
-}
-
-function authenticate(req, res, next) {
-
-    // Your code
-
-}
-
-function validateStudent(req, res, next) {
-
-    // Your code
-
-}
-```
-
-### Step 6 — Pseudocode
+### Step 6: Pseudocode
 
 ```
 START
 
-Create Express application
+Read API key from request header
 
-Register JSON middleware
-
-Create logger middleware
-
-Create authentication middleware
-
-Create validation middleware
-
-Create POST /students route
-
-Create GET /students route
-
-Start server
+IF API key is correct
+    Call next()
+ELSE
+    Send 401 Unauthorized response
 
 END
 ```
 
-### Step 7 — Your turn
+### Step 7: Your turn
 
-Try to write the code yourself.
+Write the middleware and register it only for the `/students` route.
 
-- Created Express server.
-- Created logger middleware.
-- Created authentication middleware.
-- Created validation middleware.
-- Created POST route.
-- Created GET route.
-- Tested using Postman.
+Do not worry if your code has mistakes. Send your attempt, and I'll review it line by line.
 
-Send your code here. I will review it line by line, correct mistakes, and explain the logic.
+## 17. 📌 Chapter Summary & Quick Revision
 
-## 16. 📌 Chapter Summary
+### What did we learn?
 
-| Concept            | What you learned                                |
-| ------------------ | ----------------------------------------------- |
-| Middleware         | Function executed during request-response cycle |
-| `req`              | Client request information                      |
-| `res`              | Sends a response                                |
-| `next()`           | Passes control forward                          |
-| `app.use()`        | Registers application middleware                |
-| `router.use()`     | Registers router middleware                     |
-| `express.json()`   | Parses JSON request body                        |
-| `express.static()` | Serves static files                             |
-| `cors`             | Handles cross-origin resource sharing           |
-| Logger             | Records request information                     |
-| Authentication     | Checks user credentials or tokens               |
-| Validation         | Checks incoming data                            |
-| Error middleware   | Handles application errors                      |
+| Concept          | Meaning                                          |
+| ---------------- | ------------------------------------------------ |
+| Middleware       | Function that runs during request-response cycle |
+| `req`            | Request information                              |
+| `res`            | Response object                                  |
+| `next()`         | Passes control forward                           |
+| `app.use()`      | Registers application middleware                 |
+| `router.use()`   | Registers router middleware                      |
+| `express.json()` | Parses JSON request body                         |
+| Morgan           | Third-party logger                               |
+| CORS             | Controls cross-origin browser access             |
+| Error middleware | Handles errors                                   |
 
-Most important concept: Middleware processes a request before it reaches the route handler, unless the middleware itself sends the response or passes an error.
+### Final revision flow
 
-## 17. ⚡ Quick Revision
+```
+CLIENT REQUEST
+      |
+      v
+EXPRESS SERVER
+      |
+      v
+MIDDLEWARE
+      |
+      +----> Check Request
+      |
+      +----> Authentication
+      |
+      +----> Validation
+      |
+      v
+ROUTE HANDLER
+      |
+      v
+RESPONSE
+```
 
-### Chapter 19 Completion Checklist
+### Self-check
 
-- I understand middleware.
+- I understand what middleware is.
 - I understand `req`, `res`, and `next`.
-- I understand the request lifecycle.
-- I understand all middleware types.
-- I can create logger middleware.
-- I can create authentication middleware.
-- I can create validation middleware.
-- I can create error-handling middleware.
+- I can create custom middleware.
+- I understand middleware order.
+- I can use built-in middleware.
+- I understand error-handling middleware.
+- I can protect an API using middleware.
 
-Chapter 19 completed!
+## 🎓 Next Chapter
 
-Next: Chapter 20 — Express Router
+Chapter 20 — Express Router
 
-You will learn:
+We will learn:
 
-1. What is Express Router?
-2. Why do we need Router?
-3. `express.Router()`
-4. Creating separate route files.
-5. Connecting routes with `app.use()`.
-6. Route parameters in Router.
-7. Router-level middleware.
-8. Building a modular Book API.
-9. Professional folder structure.
+- What is Express Router?
+- Why do we need Router?
+- `express.Router()`
+- Creating separate route files
+- `router.get()`, `router.post()`, `router.put()`, `router.delete()`
+- Connecting routes with `server.js`
+- Practical Student API using separate route files
+- Complete folder structure
 
-When you're ready, type `NEXT` to start Chapter 20.
+Type `NEXT` to start Chapter 20.

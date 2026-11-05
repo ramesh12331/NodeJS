@@ -1,292 +1,376 @@
-# Chapter 23 — REST API Fundamentals
+# 🚀 PART 6 — REST API DEVELOPMENT
 
+# Chapter 24 — REST API Request Parameters
 
+BEGINNER LEVEL → PRACTICAL LEVEL
 
-PART 6 — REST API DEVELOPMENT
+## 📚 Table of Contents
 
-Beginner to Advanced
+1. What are Request Parameters?
+2. Why do we need Request Parameters?
+3. Real-world Analogy
+4. Types of Request Data
+5. Route Parameters — `req.params`
+6. Query Parameters — `req.query`
+7. Request Body — `req.body`
+8. Request Headers — `req.headers`
+9. Difference Between Params, Query and Body
+10. Practical Example — Student API
+11. Filtering, Searching and Pagination
+12. Common Mistakes
+13. Best Practices
+14. Interview Questions
+15. Practice Problems
+16. Mini Challenge
+17. Chapter Summary & Quick Revision
 
+## 1. 🧠 What are Request Parameters?
 
+When a client sends a request to an Express server, it can send additional information.
 
-## 🔑 Requires Before Starting
+This information is called request data.
 
-Before learning REST APIs, you should understand:
-
-1. Node.js: JavaScript runtime used for backend development.
-2. Express.js: Framework used to create backend APIs.
-3. Routing: Handling requests using GET, POST, PUT, PATCH and DELETE.
-4. Express Router: Organizing API routes into separate files.
-5. Controllers: Functions that handle requests and responses.
-6. Middleware: Functions that execute during the request-response lifecycle.
-7. Error handling: Managing errors using `try/catch` and error middleware.
-8. HTTP: Understanding how clients and servers communicate.
-9. JSON: A format used to exchange data between frontend and backend.
-
-You have already learned most of these concepts. Now we will understand how to combine them to build professional REST APIs.
-
-## 1. What is REST?
-
-REST stands for Representational State Transfer.
-
-REST is an architectural style used to design web APIs.
-
-It provides guidelines for how clients and servers communicate using HTTP.
-
-For example, imagine you are building a Student Management application.
-
-Your React frontend needs to communicate with your Express backend.
-
-The frontend may need to:
-
-- Get all students.
-- Get one student.
-- Create a student.
-- Update a student.
-- Delete a student.
-
-REST helps us organize these operations using resources and HTTP methods.
-
-### Simple example
+For example, imagine you want to get student ID 10.
 
 ```
-GET     /api/students
-POST    /api/students
-GET     /api/students/101
-PUT     /api/students/101
-DELETE  /api/students/101
+GET /api/students/10
 ```
 
-These are REST-style API endpoints.
+Here, `10` is the student ID.
 
-### 📖 Read
-
-📖 Read — Understand REST
-
-### 💡 Important
-
-💡 Important — Remember
-
-## 2. Why do we need REST APIs?
-
-Imagine you have developed:
-
-- React frontend.
-- Node.js backend.
-- PostgreSQL database.
-
-Your frontend needs student information from your backend.
-
-Without a common API structure, different developers might create inconsistent URLs and methods.
-
-For example:
+Or you want to filter students by course:
 
 ```
-/getAllStudents
-/createNewStudent
-/updateStudentDetails
-/removeStudent
+GET /api/students?course=Node.js
 ```
 
-These endpoints can work, but they do not follow common REST naming conventions.
+Here, `course=Node.js` is a query parameter.
 
-REST provides a consistent approach:
-
-```
-GET     /students
-POST    /students
-PUT     /students/101
-DELETE  /students/101
-```
-
-### Benefits of REST APIs
-
-1. Standard communication between frontend and backend.
-2. Clear resource-based URLs.
-3. Uses standard HTTP methods.
-4. Supports different frontend technologies.
-5. Easier to maintain.
-6. Easier to integrate with mobile applications.
-7. Supports scalable application architecture.
-
-### Real application example
-
-[APIs Without Tears: A Gentle Intro to FastAPI | by chaithanya k | Medium](https://images.openai.com/static-rsc-4/1OhcETPaVubr_bAqX2pd5-pGEZmZsiXKYdZRnZSyUP60y5Cd33DlfKz1ZW9fDHz5tfvGxqMgT4oEyGJLxkv7aMl_z2j4WuwwtN8lqVx79L-hwkuBKlaDYA0XtFVwy9q0kLIw6N43nIqf5HlWsFjbNO6qMTCe-gci0xT5s9jlPFY?purpose=inline)
-
-[medium.com](https://medium.com/%40cchaithanya83/apis-without-tears-a-gentle-intro-to-fastapi-ba3667a10bd3?utm_source=chatgpt.com)
+Or you want to create a student:
 
 ```
-React Frontend
+{
+    "name": "Ramesh",
+    "course": "Node.js",
+    "age": 25
+}
+```
+
+This information is sent in the request body.
+
+Express provides different properties to access this information:
+
+| Property      | Purpose               |
+| ------------- | --------------------- |
+| `req.params`  | Read route parameters |
+| `req.query`   | Read query parameters |
+| `req.body`    | Read request body     |
+| `req.headers` | Read request headers  |
+
+## 2. 🤔 Why do we need Request Parameters?
+
+Imagine your Student API contains 100 students.
+
+You may want to:
+
+- Get student ID 10.
+- Get only Node.js students.
+- Search for students named Ramesh.
+- Create a new student.
+- Update student information.
+- Send an authentication token.
+
+We use request parameters and other request data to perform these operations.
+
+## 3. 🌍 Real-world Analogy
+
+Imagine ordering food online.
+
+You provide:
+
+- Product ID
+- Food category
+- Quantity
+- Delivery address
+- Authentication information
+
+Each piece of information helps the application understand your request.
+
+Express receives request information in a similar way.
+
+## 4. 🔄 Types of Request Data
+
+Let's understand the four important types.
+
+```
+CLIENT REQUEST
       |
-      | HTTP Request
-      ↓
-Express REST API
+      v
+EXPRESS SERVER
       |
-      | Database Query
-      ↓
-PostgreSQL / MongoDB
+      +---- req.params
+      |       Route values
+      |
+      +---- req.query
+      |       Filtering values
+      |
+      +---- req.body
+      |       Submitted data
+      |
+      +---- req.headers
+              Metadata and tokens
 ```
 
-The frontend does not need to know how the database stores the information. It communicates with the backend through API endpoints.
+Example request:
 
-## 3. Real-world analogy
+```
+POST /api/students/10?active=true
+Content-Type: application/json
+Authorization: Bearer example-token
+```
 
-Imagine a restaurant.
+Body:
 
-[Food & Beverage POS & Payment Solutions | Elavon UK](https://images.openai.com/static-rsc-4/-ymKE8OGV_3LVrBOlG9XJisvrZq8WN8f82czZHmslCHR4VGEUMktv8I2hiNKfUa1_mGdXDCFJAWI1c9ryv9_Sw_D54D_eccils8UcRNMppDiJVBohii5qhDUB-X9n8z6RSLupPUDJaXCOiR03YUhdDg5K8omUUoSJoJpndyp4dU?purpose=inline)
+```
+{
+    "name": "Ramesh",
+    "course": "Node.js",
+    "age": 25
+}
+```
 
-[elavon.co.uk](https://www.elavon.co.uk/about/industries-we-work-with/food-and-beverage.html?utm_source=chatgpt.com)
+Here:
 
-The process:
+- `10` → `req.params.id`
+- `active=true` → `req.query.active`
+- Student details → `req.body`
+- Authorization token → `req.headers.authorization`
 
-1. Customer requests food.
-2. Waiter receives the request.
-3. Kitchen prepares the food.
-4. Waiter delivers the food.
+## 5. 🔢 Route Parameters — `req.params`
 
-REST API works similarly.
+Route parameters are values captured from named placeholders in the URL path.
 
-| Restaurant     | REST API          |
-| -------------- | ----------------- |
-| Customer       | Frontend client   |
-| Menu           | API documentation |
-| Food request   | HTTP request      |
-| Waiter         | API endpoint      |
-| Kitchen        | Backend logic     |
-| Food delivered | API response      |
+They are commonly used to identify a specific resource.
 
-The frontend sends a request, the backend processes it, and the backend sends a response.
+### Example
 
-## 4. Architecture / Flow
+```
+GET /api/students/10
+```
 
-### REST API architecture
+Route:
 
-Frontend
+```
+app.get("/api/students/:id", (req, res) => {
 
-React / Mobile App / Browser
+    console.log(req.params);
 
-HTTP Request
+    res.json({
+        id: req.params.id
+    });
 
-REST API
+});
+```
 
-Express.js
+### Output
 
-Database operations
+```
+{
+    "id": "10"
+}
+```
 
-Database
+Notice that the value is a string.
 
-MongoDB / PostgreSQL
+### Understanding `:id`
 
-Query result
+```
+"/api/students/:id"
+```
 
-Express API Response
+Here:
 
-JSON + HTTP status code
+- `:` means a route parameter.
+- `id` is the parameter name.
 
-HTTP Response
+You can use any meaningful name.
 
-Frontend Displays Data
+```
+app.get("/api/employees/:employeeId", (req, res) => {
 
-### GitHub Mermaid diagram
+    console.log(req.params.employeeId);
 
-Copy this diagram directly into your GitHub README.
+});
+```
 
-\#chatgpt-mermaid-\_r_6ts\_{font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";font-size:16px;fill:rgb(13, 13, 13);}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#chatgpt-mermaid-\_r_6ts\_ .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#chatgpt-mermaid-\_r_6ts\_ .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#chatgpt-mermaid-\_r_6ts\_ .error-icon{fill:rgb(243, 243, 243);}#chatgpt-mermaid-\_r_6ts\_ .error-text{fill:rgb(13, 13, 13);stroke:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_6ts\_ .edge-thickness-normal{stroke-width:1px;}#chatgpt-mermaid-\_r_6ts\_ .edge-thickness-thick{stroke-width:3.5px;}#chatgpt-mermaid-\_r_6ts\_ .edge-pattern-solid{stroke-dasharray:0;}#chatgpt-mermaid-\_r_6ts\_ .edge-thickness-invisible{stroke-width:0;fill:none;}#chatgpt-mermaid-\_r_6ts\_ .edge-pattern-dashed{stroke-dasharray:3;}#chatgpt-mermaid-\_r_6ts\_ .edge-pattern-dotted{stroke-dasharray:2;}#chatgpt-mermaid-\_r_6ts\_ .marker{fill:rgb(143, 143, 143);stroke:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_6ts\_ .marker.cross{stroke:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_6ts\_ svg{font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";font-size:16px;}#chatgpt-mermaid-\_r_6ts\_ p{margin:0;}#chatgpt-mermaid-\_r_6ts\_ .label{font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";color:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_6ts\_ .cluster-label text{fill:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_6ts\_ .cluster-label span{color:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_6ts\_ .cluster-label span p{background-color:transparent;}#chatgpt-mermaid-\_r_6ts\_ .label text,#chatgpt-mermaid-\_r_6ts\_ span{fill:rgb(13, 13, 13);color:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_6ts\_ .node rect,#chatgpt-mermaid-\_r_6ts\_ .node circle,#chatgpt-mermaid-\_r_6ts\_ .node ellipse,#chatgpt-mermaid-\_r_6ts\_ .node polygon,#chatgpt-mermaid-\_r_6ts\_ .node path{fill:rgb(222, 234, 251);stroke:rgb(83, 154, 248);stroke-width:1px;}#chatgpt-mermaid-\_r_6ts\_ .rough-node .label text,#chatgpt-mermaid-\_r_6ts\_ .node .label text,#chatgpt-mermaid-\_r_6ts\_ .image-shape .label,#chatgpt-mermaid-\_r_6ts\_ .icon-shape .label{text-anchor:middle;}#chatgpt-mermaid-\_r_6ts\_ .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#chatgpt-mermaid-\_r_6ts\_ .rough-node .label,#chatgpt-mermaid-\_r_6ts\_ .node .label,#chatgpt-mermaid-\_r_6ts\_ .image-shape .label,#chatgpt-mermaid-\_r_6ts\_ .icon-shape .label{text-align:center;}#chatgpt-mermaid-\_r_6ts\_ .node.clickable{cursor:pointer;}#chatgpt-mermaid-\_r_6ts\_ .root .anchor path{fill:rgb(143, 143, 143)!important;stroke-width:0;stroke:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_6ts\_ .arrowheadPath{fill:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_6ts\_ .edgePath .path{stroke:rgb(143, 143, 143);stroke-width:1px;}#chatgpt-mermaid-\_r_6ts\_ .flowchart-link{stroke:rgb(143, 143, 143);fill:none;}#chatgpt-mermaid-\_r_6ts\_ .edgeLabel{background-color:rgb(252, 252, 252);text-align:center;}#chatgpt-mermaid-\_r_6ts\_ .edgeLabel p{background-color:rgb(252, 252, 252);}#chatgpt-mermaid-\_r_6ts\_ .edgeLabel rect{opacity:0.5;background-color:rgb(252, 252, 252);fill:rgb(252, 252, 252);}#chatgpt-mermaid-\_r_6ts\_ .labelBkg{background-color:rgba(252, 252, 252, 0.5);}#chatgpt-mermaid-\_r_6ts\_ .cluster rect{fill:rgb(243, 243, 243);stroke:rgba(0, 0, 0, 0.1);stroke-width:1px;}#chatgpt-mermaid-\_r_6ts\_ .cluster text{fill:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_6ts\_ .cluster span{color:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_6ts\_ div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";font-size:12px;background:rgb(243, 243, 243);border:1px solid rgba(0, 0, 0, 0.1);border-radius:2px;pointer-events:none;z-index:100;}#chatgpt-mermaid-\_r_6ts\_ .flowchartTitleText{text-anchor:middle;font-size:18px;fill:rgb(13, 13, 13);}#chatgpt-mermaid-\_r_6ts\_ rect.text{fill:none;stroke-width:0;}#chatgpt-mermaid-\_r_6ts\_ .icon-shape,#chatgpt-mermaid-\_r_6ts\_ .image-shape{background-color:rgb(252, 252, 252);text-align:center;}#chatgpt-mermaid-\_r_6ts\_ .icon-shape p,#chatgpt-mermaid-\_r_6ts\_ .image-shape p{background-color:rgb(252, 252, 252);padding:2px;}#chatgpt-mermaid-\_r_6ts\_ .icon-shape .label rect,#chatgpt-mermaid-\_r_6ts\_ .image-shape .label rect{opacity:0.5;background-color:rgb(252, 252, 252);fill:rgb(252, 252, 252);}#chatgpt-mermaid-\_r_6ts\_ .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#chatgpt-mermaid-\_r_6ts\_ .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#chatgpt-mermaid-\_r_6ts\_ .node .neo-node{stroke:rgb(83, 154, 248);}#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].node rect,#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].cluster rect,#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].node polygon{stroke:url(#chatgpt-mermaid-\_r_6ts\_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].swimlane.cluster rect{filter:none;}#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].node path{stroke:url(#chatgpt-mermaid-\_r_6ts\_-gradient);stroke-width:1px;}#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].node .outer-path{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].node .neo-line path{stroke:rgb(83, 154, 248);filter:none;}#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].node circle{stroke:url(#chatgpt-mermaid-\_r_6ts\_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].node circle .state-start{fill:#000000;}#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].icon-shape .icon{fill:url(#chatgpt-mermaid-\_r_6ts\_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_6ts\_ [data-look="neo"].icon-shape .icon-neo path{stroke:url(#chatgpt-mermaid-\_r_6ts\_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-\_r_6ts\_ .node text{font-size:14px;font-weight:600;letter-spacing:normal;fill:rgb(0, 79, 153);}#chatgpt-mermaid-\_r_6ts\_ .edgeLabels text{font-size:13px;font-weight:600;letter-spacing:-0.08px;fill:rgb(0, 79, 153);}#chatgpt-mermaid-\_r_6ts\_ .node tspan[font-weight="normal"],#chatgpt-mermaid-\_r_6ts\_ .edgeLabels tspan[font-weight="normal"]{font-weight:600;}#chatgpt-mermaid-\_r_6ts\_ .edgeLabel .label rect{opacity:1;rx:13px;ry:13px;fill:rgb(245, 250, 255);stroke:rgb(206, 219, 229);stroke-width:1px;}#chatgpt-mermaid-\_r_6ts\_ .node rect,#chatgpt-mermaid-\_r_6ts\_ .node circle,#chatgpt-mermaid-\_r_6ts\_ .node ellipse,#chatgpt-mermaid-\_r_6ts\_ .node polygon,#chatgpt-mermaid-\_r_6ts\_ .node path{fill:rgb(229, 243, 255);stroke:rgba(0, 0, 0, 0.1);stroke-width:1px;}#chatgpt-mermaid-\_r_6ts\_ .node rect{rx:16px;ry:16px;}#chatgpt-mermaid-\_r_6ts\_ .mermaid-decision .label-container{fill:rgb(245, 250, 255);stroke:rgb(206, 219, 229);stroke-dasharray:2,2;}#chatgpt-mermaid-\_r_6ts\_ .edgePaths .flowchart-link{stroke:rgb(143, 143, 143);stroke-width:1px;stroke-linecap:round;stroke-linejoin:round;}#chatgpt-mermaid-\_r_6ts\_ .marker{fill:rgb(143, 143, 143);stroke:rgb(143, 143, 143);}#chatgpt-mermaid-\_r_6ts\_ :root{--mermaid-font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";}React FrontendExpress REST APIRouterControllerDatabaseJSON ResponseHTTP Request
+Request:
 
-### Request-response example
+```
+GET /api/employees/25
+```
 
-Frontend sends:
+Output:
+
+```
+25
+```
+
+### Multiple route parameters
+
+You can use multiple parameters in one route.
+
+```
+app.get("/api/students/:studentId/courses/:courseId", (req, res) => {
+
+    const studentId = req.params.studentId;
+
+    const courseId = req.params.courseId;
+
+    res.json({
+        studentId,
+        courseId
+    });
+
+});
+```
+
+Request:
+
+```
+GET /api/students/10/courses/5
+```
+
+Response:
+
+```
+{
+    "studentId": "10",
+    "courseId": "5"
+}
+```
+
+### Important: Convert numeric values
+
+Route parameters are strings by default.
+
+```
+const id = Number(req.params.id);
+```
+
+Now `id` is a number.
+
+## 6. 🔍 Query Parameters — `req.query`
+
+Query parameters are values sent after `?` in the URL.
+
+They are commonly used for:
+
+- Filtering
+- Searching
+- Sorting
+- Pagination
+
+### Example
+
+```
+GET /api/students?course=Node.js
+```
+
+Route:
+
+```
+app.get("/api/students", (req, res) => {
+
+    console.log(req.query);
+
+    res.json({
+        course: req.query.course
+    });
+
+});
+```
+
+### Output
+
+```
+{
+    "course": "Node.js"
+}
+```
+
+### Multiple query parameters
+
+Request:
+
+```
+GET /api/students?course=Node.js&age=25
+```
+
+Code:
+
+```
+app.get("/api/students", (req, res) => {
+
+    const course = req.query.course;
+
+    const age = req.query.age;
+
+    res.json({
+        course,
+        age
+    });
+
+});
+```
+
+Response:
+
+```
+{
+    "course": "Node.js",
+    "age": "25"
+}
+```
+
+### Query parameters are optional
+
+You can request:
 
 ```
 GET /api/students
 ```
 
-Backend responds:
+Or:
 
 ```
-{
-    "success": true,
-    "data": [
-        {
-            "id": 1,
-            "name": "Ramesh"
-        },
-        {
-            "id": 2,
-            "name": "Suresh"
-        }
-    ]
-}
+GET /api/students?course=Python
 ```
 
-## 5. Syntax
+The same route can handle both requests.
 
-Now let's understand the important REST API concepts.
-
-### 5.1 REST
-
-REST is an architectural style for designing APIs.
-
-### 5.2 Resource
-
-A resource is an entity or data object that an API manages.
-
-Examples:
-
-```
-Students
-Employees
-Products
-Customers
-Orders
-Books
-```
-
-### 5.3 Endpoint
-
-An endpoint is a URL through which a client accesses a resource or performs an operation.
+### Query parameters with multiple values
 
 Example:
 
 ```
-/api/students
+GET /api/students?course=Node.js&course=Python
 ```
 
-### 5.4 HTTP methods
+Depending on the query parser configuration, Express can represent repeated query keys as an array.
 
-| Method | Purpose                     |
-| ------ | --------------------------- |
-| GET    | Read data                   |
-| POST   | Create data                 |
-| PUT    | Replace/update a resource   |
-| PATCH  | Partially update a resource |
-| DELETE | Delete data                 |
+For normal beginner examples, use one value per query key.
 
-### 5.5 JSON
+## 7. 📦 Request Body — `req.body`
 
-JSON stands for JavaScript Object Notation.
+The request body contains data sent by the client to the server.
 
-Example:
+It is commonly used with:
 
-```
-{
-    "id": 101,
-    "name": "Ramesh",
-    "email": "ramesh@example.com"
-}
-```
+- POST
+- PUT
+- PATCH
 
-### 5.6 HTTP request structure
-
-A request commonly contains:
-
-```
-HTTP Method
-URL
-Headers
-Body (when applicable)
-```
-
-Example:
+### Example request
 
 ```
 POST /api/students
@@ -297,1363 +381,942 @@ Body:
 
 ```
 {
-    "name": "Ramesh",
-    "email": "ramesh@example.com"
+    "name": "Anil",
+    "course": "FastAPI",
+    "age": 23
 }
 ```
 
-## 6. Basic example
-
-Let's create a simple REST API using Express.
-
-### Step 1: Create project
-
-```
-mkdir 23_REST_API_Fundamentals
-
-cd 23_REST_API_Fundamentals
-
-npm init -y
-
-npm install express
-```
-
-### Step 2: Project structure
-
-```
-23_REST_API_Fundamentals/
-│
-├── node_modules/
-├── server.js
-└── package.json
-```
-
-### Step 3: Create `server.js`
+### Express code
 
 ```
 const express = require("express");
 
 const app = express();
 
-// Middleware to read JSON
+// Middleware to parse JSON
 app.use(express.json());
 
-// Sample student data
-const students = [
+app.post("/api/students", (req, res) => {
 
-    {
-        id: 1,
-        name: "Ramesh"
-    },
-
-    {
-        id: 2,
-        name: "Suresh"
-    }
-
-];
-
-// GET - Read students
-app.get("/api/students", (req, res) => {
-
-    res.status(200).json({
-
-        message: "Students fetched successfully",
-
-        data: students
-
-    });
-
-});
-
-// GET - Read single student
-app.get("/api/students/:id", (req, res) => {
-
-    const id = Number(req.params.id);
-
-    const student = students.find(
-        (student) => student.id === id
-    );
-
-    if (!student) {
-
-        return res.status(404).json({
-
-            message: "Student not found"
-
-        });
-
-    }
-
-    res.status(200).json({
-
-        data: student
-
-    });
-
-});
-
-// Start server
-app.listen(3000, () => {
-
-    console.log("Server running on port 3000");
-
-});
-```
-
-### Step 4: Start server
-
-```
-node server.js
-```
-
-Test in Postman:
-
-```
-GET http://localhost:3000/api/students
-```
-
-## 7. Dry run
-
-Let's understand this request:
-
-```
-GET /api/students/1
-```
-
-### Step-by-step execution
-
-Step 1: Client sends a GET request.
-
-```
-/api/students/1
-```
-
-Step 2: Express matches this route.
-
-```
-app.get("/api/students/:id", (req, res) => {
-```
-
-Step 3: Express reads the ID.
-
-```
-const id = Number(req.params.id);
-```
-
-Value:
-
-```
-id = 1
-```
-
-Step 4: Find the student.
-
-```
-const student = students.find(
-    (student) => student.id === id
-);
-```
-
-The array contains a student with ID 1.
-
-Step 5: Send the response.
-
-```
-res.status(200).json({
-    data: student
-});
-```
-
-### Execution flow
-
-```
-Client
-  ↓
-GET /api/students/1
-  ↓
-Express Route
-  ↓
-Read ID
-  ↓
-Find Student
-  ↓
-Send JSON Response
-```
-
-## 8. Output
-
-### GET all students
-
-Request:
-
-```
-GET http://localhost:3000/api/students
-```
-
-Response:
-
-```
-{
-    "message": "Students fetched successfully",
-    "data": [
-        {
-            "id": 1,
-            "name": "Ramesh"
-        },
-        {
-            "id": 2,
-            "name": "Suresh"
-        }
-    ]
-}
-```
-
-### GET single student
-
-Request:
-
-```
-GET http://localhost:3000/api/students/1
-```
-
-Response:
-
-```
-{
-    "data": {
-        "id": 1,
-        "name": "Ramesh"
-    }
-}
-```
-
-### Student not found
-
-Request:
-
-```
-GET http://localhost:3000/api/students/99
-```
-
-Response:
-
-```
-{
-    "message": "Student not found"
-}
-```
-
-HTTP status:
-
-```
-404 Not Found
-```
-
-## 9. Line-by-line explanation
-
-Let's understand the most important lines.
-
-### Express setup
-
-```
-const express = require("express");
-```
-
-Imports the Express framework.
-
-```
-const app = express();
-```
-
-Creates the Express application.
-
-```
-app.use(express.json());
-```
-
-Parses incoming JSON request bodies.
-
-### Resource definition
-
-```
-const students = [
-    { id: 1, name: "Ramesh" },
-    { id: 2, name: "Suresh" }
-];
-```
-
-Creates sample student records.
-
-### GET endpoint
-
-```
-app.get("/api/students", (req, res) => {
-```
-
-Creates a GET endpoint for the students resource.
-
-```
-res.status(200).json({
-    data: students
-});
-```
-
-Sends student data with HTTP status `200 OK`.
-
-### Route parameter
-
-```
-req.params.id
-```
-
-Reads the ID from the URL.
-
-Example:
-
-```
-/api/students/101
-```
-
-Here:
-
-```
-req.params.id = "101"
-```
-
-The value is initially a string, which is why we convert it using `Number()` when we need a numeric ID.
-
-## 10. Practical example
-
-Now let's understand all the important REST API concepts in detail.
-
-### 10.1 Resources
-
-A resource represents the data managed by an API.
-
-For example, an online shopping application may have:
-
-```
-Users
-Products
-Orders
-Categories
-Payments
-Reviews
-```
-
-Common REST resource names are usually plural nouns.
-
-Examples:
-
-```
-/api/users
-/api/products
-/api/orders
-```
-
-### 10.2 Endpoints
-
-An endpoint is an API URL used to access or operate on a resource.
-
-For example:
-
-```
-/api/products
-/api/products/101
-/api/orders
-/api/users/5
-```
-
-Understand:
-
-| Endpoint            | Meaning             |
-| ------------------- | ------------------- |
-| `/api/products`     | Product collection  |
-| `/api/products/101` | Product with ID 101 |
-| `/api/orders`       | Order collection    |
-| `/api/users/5`      | User with ID 5      |
-
-### 10.3 HTTP methods
-
-Let's understand each method.
-
-A. GET — Read data
-
-GET retrieves information.
-
-```
-app.get("/api/students", (req, res) => {
+    console.log(req.body);
 
     res.json({
-        message: "Get all students"
+        message: "Student data received",
+        data: req.body
     });
 
 });
 ```
 
-Example:
+### Output
+
+```
+{
+    "message": "Student data received",
+    "data": {
+        "name": "Anil",
+        "course": "FastAPI",
+        "age": 23
+    }
+}
+```
+
+### Important
+
+Without this middleware:
+
+```
+app.use(express.json());
+```
+
+Express will not automatically parse incoming JSON request bodies.
+
+For HTML form submissions encoded as URL-encoded data, use:
+
+```
+app.use(express.urlencoded({ extended: true }));
+```
+
+## 8. 🔐 Request Headers — `req.headers`
+
+Request headers contain additional information about an HTTP request.
+
+Headers can provide:
+
+- Content type
+- Authentication token
+- Accepted response formats
+- Client information
+
+### Example request
 
 ```
 GET /api/students
+Authorization: Bearer example-token
+Content-Type: application/json
 ```
 
-B. POST — Create data
-
-POST creates a new resource.
+### Express code
 
 ```
-app.post("/api/students", (req, res) => {
+app.get("/api/students", (req, res) => {
 
-    const student = req.body;
+    const authorization = req.headers.authorization;
 
-    res.status(201).json({
-        message: "Student created",
-        data: student
+    res.json({
+        authorization
     });
 
 });
 ```
 
-Example body:
+Response:
 
 ```
 {
-    "name": "Ramesh",
-    "email": "ramesh@example.com"
+    "authorization": "Bearer example-token"
 }
 ```
 
-C. PUT — Replace a resource
+### Common headers
 
-PUT generally replaces the resource representation with the supplied data.
+| Header          | Purpose                               |
+| --------------- | ------------------------------------- |
+| `Content-Type`  | Describes request body format         |
+| `Authorization` | Carries authentication credentials    |
+| `Accept`        | Indicates acceptable response formats |
+| `User-Agent`    | Identifies the client software        |
+
+Important: Never send real passwords or secret API keys in URLs. Use secure authentication mechanisms and HTTPS.
+
+## 9. 📊 Difference Between Params, Query and Body
+
+This is an important interview topic.
+
+| Feature    | `req.params`      | `req.query`       | `req.body`             |
+| ---------- | ----------------- | ----------------- | ---------------------- |
+| Location   | URL path          | After `?`         | Request body           |
+| Purpose    | Identify resource | Filter/search     | Send data              |
+| Example    | `/students/10`    | `?course=Node.js` | Student JSON           |
+| Common use | Get by ID         | Search students   | Create student         |
+| Value type | Usually strings   | Usually strings   | Depends on parsed JSON |
+
+### One example containing all three
+
+Request:
 
 ```
-app.put("/api/students/:id", (req, res) => {
-
-    const id = req.params.id;
-
-    const student = req.body;
-
-    res.json({
-        message: "Student replaced",
-        id,
-        data: student
-    });
-
-});
+PATCH /api/students/10?notify=true
+Content-Type: application/json
+Authorization: Bearer example-token
 ```
 
-D. PATCH — Partially update a resource
+Body:
 
-PATCH updates selected fields.
+```
+{
+    "course": "Machine Learning"
+}
+```
+
+Code:
 
 ```
 app.patch("/api/students/:id", (req, res) => {
 
     const id = req.params.id;
 
-    const updates = req.body;
+    const notify = req.query.notify;
+
+    const course = req.body.course;
+
+    const authorization = req.headers.authorization;
 
     res.json({
-        message: "Student partially updated",
         id,
-        updates
+        notify,
+        course,
+        authorization
     });
 
 });
 ```
 
-E. DELETE — Delete a resource
-
-DELETE removes a resource.
-
-```
-app.delete("/api/students/:id", (req, res) => {
-
-    const id = req.params.id;
-
-    res.json({
-        message: "Student deleted",
-        id
-    });
-
-});
-```
-
-### 10.4 CRUD
-
-CRUD stands for:
-
-- Create
-- Read
-- Update
-- Delete
-
-| CRUD operation | HTTP method | Endpoint            |
-| -------------- | ----------- | ------------------- |
-| Create         | POST        | `/api/students`     |
-| Read all       | GET         | `/api/students`     |
-| Read one       | GET         | `/api/students/:id` |
-| Update         | PUT         | `/api/students/:id` |
-| Partial update | PATCH       | `/api/students/:id` |
-| Delete         | DELETE      | `/api/students/:id` |
-
-### 10.5 Stateless architecture
-
-Statelessness is one of the important REST principles.
-
-Stateless means the server does not store client session state between requests as part of the REST interaction.
-
-Each request should contain the information needed to process it.
-
-For example, an authenticated request may include an access token:
-
-```
-GET /api/profile
-Authorization: Bearer your-access-token
-```
-
-The server verifies the token and processes the request.
-
-It does not depend on remembering the previous request from that client.
-
-💡 Important distinction
-
-Stateless does not mean the server cannot store data. Your backend can still store users, products, orders, and other information in a database. It means each request is handled independently with the necessary request information.
-
-### 10.6 JSON API
-
-A JSON API commonly sends and receives JSON data.
-
-Example request:
+Response:
 
 ```
 {
-    "name": "Ramesh",
-    "email": "ramesh@example.com"
+    "id": "10",
+    "notify": "true",
+    "course": "Machine Learning",
+    "authorization": "Bearer example-token"
 }
 ```
 
-Example response:
+### Easy memory trick
+
+- `params` → Which resource?
+- `query` → Which filter?
+- `body` → What data?
+- `headers` → What additional request information?
+
+## 10. 🏗️ Practical Example — Student API
+
+Let's create an API using all four request properties.
+
+### Step 1: Project structure
 
 ```
-{
-    "success": true,
-    "message": "Student created successfully",
-    "data": {
-        "id": 101,
-        "name": "Ramesh",
-        "email": "ramesh@example.com"
-    }
-}
-```
-
-JSON is commonly used because it is easy to exchange between JavaScript frontend and backend applications.
-
-### 10.7 REST conventions
-
-Follow these common conventions when designing APIs.
-
-Convention 1: Use nouns instead of verbs.
-
-Avoid:
-
-```
-/getStudents
-/createStudent
-/deleteStudent
-```
-
-Prefer:
-
-```
-GET     /api/students
-POST    /api/students
-DELETE  /api/students/101
-```
-
-Convention 2: Use plural resource names.
-
-Prefer:
-
-```
-/api/students
-/api/products
-/api/employees
-```
-
-Convention 3: Use route parameters for individual resources.
-
-```
-/api/students/101
-/api/products/501
-```
-
-Convention 4: Use query parameters for filtering and pagination.
-
-```
-/api/students?department=IT
-/api/products?category=mobile
-/api/students?page=1&limit=10
-```
-
-Convention 5: Return meaningful HTTP status codes.
-
-```
-200 OK
-201 Created
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-404 Not Found
-500 Internal Server Error
-```
-
-Convention 6: Keep response structures consistent.
-
-Example:
-
-```
-{
-    "success": true,
-    "message": "Students fetched successfully",
-    "data": []
-}
-```
-
-### 10.8 Build a simple REST API
-
-Let's combine these concepts into a small Employee Management API.
-
-Project structure
-
-```
-23_REST_API_Fundamentals/
-│
-├── routes/
-│   └── employeeRoutes.js
-│
-├── controllers/
-│   └── employeeController.js
+student-api/
 │
 ├── server.js
 │
 └── package.json
 ```
 
-1\. `controllers/employeeController.js`
+### Step 2: Install Express
 
 ```
-// Temporary employee data
-let employees = [
-
-    {
-        id: 1,
-        name: "Ramesh",
-        department: "Development"
-    },
-
-    {
-        id: 2,
-        name: "Suresh",
-        department: "Testing"
-    }
-
-];
-
-// GET - All employees
-const getEmployees = (req, res) => {
-
-    res.status(200).json({
-
-        success: true,
-
-        data: employees
-
-    });
-
-};
-
-// GET - Single employee
-const getEmployeeById = (req, res) => {
-
-    const id = Number(req.params.id);
-
-    const employee = employees.find(
-        (employee) => employee.id === id
-    );
-
-    if (!employee) {
-
-        return res.status(404).json({
-
-            success: false,
-
-            message: "Employee not found"
-
-        });
-
-    }
-
-    res.status(200).json({
-
-        success: true,
-
-        data: employee
-
-    });
-
-};
-
-// POST - Create employee
-const createEmployee = (req, res) => {
-
-    const { name, department } = req.body;
-
-    if (!name || !department) {
-
-        return res.status(400).json({
-
-            success: false,
-
-            message: "Name and department are required"
-
-        });
-
-    }
-
-    const newEmployee = {
-
-        id: employees.length
-            ? Math.max(...employees.map(employee => employee.id)) + 1
-            : 1,
-
-        name,
-
-        department
-
-    };
-
-    employees.push(newEmployee);
-
-    res.status(201).json({
-
-        success: true,
-
-        message: "Employee created successfully",
-
-        data: newEmployee
-
-    });
-
-};
-
-// PUT - Update employee
-const updateEmployee = (req, res) => {
-
-    const id = Number(req.params.id);
-
-    const employee = employees.find(
-        (employee) => employee.id === id
-    );
-
-    if (!employee) {
-
-        return res.status(404).json({
-
-            success: false,
-
-            message: "Employee not found"
-
-        });
-
-    }
-
-    const { name, department } = req.body;
-
-    if (!name || !department) {
-
-        return res.status(400).json({
-
-            success: false,
-
-            message: "Name and department are required"
-
-        });
-
-    }
-
-    employee.name = name;
-
-    employee.department = department;
-
-    res.status(200).json({
-
-        success: true,
-
-        message: "Employee updated successfully",
-
-        data: employee
-
-    });
-
-};
-
-// DELETE - Employee
-const deleteEmployee = (req, res) => {
-
-    const id = Number(req.params.id);
-
-    const index = employees.findIndex(
-        (employee) => employee.id === id
-    );
-
-    if (index === -1) {
-
-        return res.status(404).json({
-
-            success: false,
-
-            message: "Employee not found"
-
-        });
-
-    }
-
-    const deletedEmployee = employees.splice(index, 1)[0];
-
-    res.status(200).json({
-
-        success: true,
-
-        message: "Employee deleted successfully",
-
-        data: deletedEmployee
-
-    });
-
-};
-
-module.exports = {
-
-    getEmployees,
-
-    getEmployeeById,
-
-    createEmployee,
-
-    updateEmployee,
-
-    deleteEmployee
-
-};
+npm init -y
+npm install express
 ```
 
-2\. `routes/employeeRoutes.js`
+### Step 3: Create `server.js`
 
 ```
+// Import Express
 const express = require("express");
 
-const router = express.Router();
-
-const {
-
-    getEmployees,
-
-    getEmployeeById,
-
-    createEmployee,
-
-    updateEmployee,
-
-    deleteEmployee
-
-} = require("../controllers/employeeController");
-
-// GET all employees
-router.get("/", getEmployees);
-
-// GET one employee
-router.get("/:id", getEmployeeById);
-
-// POST employee
-router.post("/", createEmployee);
-
-// PUT employee
-router.put("/:id", updateEmployee);
-
-// DELETE employee
-router.delete("/:id", deleteEmployee);
-
-module.exports = router;
-```
-
-3\. `server.js`
-
-```
-const express = require("express");
-
+// Create application
 const app = express();
 
-// Parse JSON
+// Port number
+const PORT = 3000;
+
+// Parse JSON request body
 app.use(express.json());
 
-// Import employee router
-const employeeRoutes = require("./routes/employeeRoutes");
+// ===================================
+// RAW STUDENT DATA
+// ===================================
 
-// Register router
-app.use("/api/employees", employeeRoutes);
+let students = [
+    { id: 1, name: "Ramesh", course: "Node.js", age: 25 },
+    { id: 2, name: "Kumar", course: "React.js", age: 24 },
+    { id: 3, name: "Suresh", course: "Python", age: 26 },
+    { id: 4, name: "Anil", course: "Node.js", age: 23 },
+    { id: 5, name: "Raj", course: "Python", age: 25 }
+];
 
-// Start server
-app.listen(3000, () => {
+// ===================================
+// GET: All students
+// ===================================
 
-    console.log("REST API running on port 3000");
+app.get("/api/students", (req, res) => {
 
-});
-```
-
-### 10.9 Test using Postman
-
-| Method | URL                | Operation |
-| ------ | ------------------ | --------- |
-| GET    | `/api/employees`   | Read all  |
-| GET    | `/api/employees/1` | Read one  |
-| POST   | `/api/employees`   | Create    |
-| PUT    | `/api/employees/1` | Update    |
-| DELETE | `/api/employees/1` | Delete    |
-
-POST body:
-
-```
-{
-    "name": "Kiran",
-    "department": "Development"
-}
-```
-
-PUT body:
-
-```
-{
-    "name": "Ramesh Kumar",
-    "department": "Backend"
-}
-```
-
-Note: This example stores data in an array. Restarting the server will reset the data. Later, we will use a database for permanent storage.
-
-## 11. Common mistakes
-
-### Mistake 1 — Using verbs in REST URLs
-
-Avoid:
-
-```
-/api/getStudents
-/api/createStudent
-```
-
-Prefer:
-
-```
-GET  /api/students
-POST /api/students
-```
-
-### Mistake 2 — Using GET to create data
-
-Wrong:
-
-```
-app.get("/api/students/create", (req, res) => {
-    // Create student
-});
-```
-
-Correct:
-
-```
-app.post("/api/students", (req, res) => {
-    // Create student
-});
-```
-
-### Mistake 3 — Forgetting JSON middleware
-
-Wrong:
-
-```
-app.post("/api/students", (req, res) => {
-
-    console.log(req.body);
-
-});
-```
-
-Correct:
-
-```
-app.use(express.json());
-
-app.post("/api/students", (req, res) => {
-
-    console.log(req.body);
-
-});
-```
-
-### Mistake 4 — Returning incorrect status codes
-
-Wrong:
-
-```
-res.status(200).json({
-    message: "Student created"
-});
-```
-
-Better:
-
-```
-res.status(201).json({
-    message: "Student created"
-});
-```
-
-`201 Created` communicates that a new resource was successfully created.
-
-### Mistake 5 — Ignoring missing resources
-
-Wrong:
-
-```
-const student = students.find(
-    (student) => student.id === id
-);
-
-res.json(student);
-```
-
-Better:
-
-```
-if (!student) {
-
-    return res.status(404).json({
-        message: "Student not found"
+    res.status(200).json({
+        message: "Students fetched successfully",
+        data: students
     });
 
-}
+});
+
+// ===================================
+// GET: Student by ID
+// Uses req.params
+// ===================================
+
+app.get("/api/students/:id", (req, res) => {
+
+    // Read ID from URL
+    const id = Number(req.params.id);
+
+    // Find student
+    const student = students.find((item) => item.id === id);
+
+    if (!student) {
+
+        return res.status(404).json({
+            message: "Student not found"
+        });
+
+    }
+
+    res.status(200).json({
+        message: "Student found",
+        data: student
+    });
+
+});
+
+// ===================================
+// GET: Filter students by course
+// Uses req.query
+// ===================================
+
+app.get("/api/filter-students", (req, res) => {
+
+    // Read course from query
+    const course = req.query.course;
+
+    // Filter students
+    const filteredStudents = students.filter(
+        (item) => item.course.toLowerCase() === String(course || "").toLowerCase()
+    );
+
+    res.status(200).json({
+        message: "Filtered students",
+        data: filteredStudents
+    });
+
+});
+
+// ===================================
+// POST: Create student
+// Uses req.body
+// ===================================
+
+app.post("/api/students", (req, res) => {
+
+    // Read body data
+    const { name, course, age } = req.body;
+
+    // Validate fields
+    if (!name || !course || age === undefined) {
+
+        return res.status(400).json({
+            message: "Name, course and age are required"
+        });
+
+    }
+
+    // Create student
+    const newStudent = {
+        id: students.length
+            ? Math.max(...students.map((item) => item.id)) + 1
+            : 1,
+        name,
+        course,
+        age
+    };
+
+    // Add student
+    students.push(newStudent);
+
+    res.status(201).json({
+        message: "Student created successfully",
+        data: newStudent
+    });
+
+});
+
+// ===================================
+// GET: Read authorization header
+// Uses req.headers
+// ===================================
+
+app.get("/api/check-header", (req, res) => {
+
+    const authorization = req.headers.authorization;
+
+    res.status(200).json({
+        message: "Header received",
+        authorization: authorization || "No authorization header"
+    });
+
+});
+
+// ===================================
+// START SERVER
+// ===================================
+
+app.listen(PORT, () => {
+
+    console.log(`Server running on port ${PORT}`);
+
+});
 ```
 
-### Mistake 6 — Thinking stateless means no database
-
-REST statelessness does not prevent storing application data in a database. It means the server should not depend on stored client session state to understand each request.
-
-## 12. Best practices
-
-1. Use resource-based URLs.
-2. Use HTTP methods correctly.
-3. Use plural resource names.
-4. Use meaningful HTTP status codes.
-5. Return consistent JSON responses.
-6. Validate request data.
-7. Handle errors properly.
-8. Keep route, controller, and business logic organized.
-9. Use authentication for protected resources.
-10. Use pagination for large collections.
-11. Use filtering and sorting where needed.
-12. Keep API documentation updated.
-
-### Recommended REST API project structure
+### Step 4: Run server
 
 ```
-backend/
-│
-├── config/
-│   └── db.js
-│
-├── controllers/
-│   ├── studentController.js
-│   └── employeeController.js
-│
-├── routes/
-│   ├── studentRoutes.js
-│   └── employeeRoutes.js
-│
-├── models/
-│   ├── Student.js
-│   └── Employee.js
-│
-├── middlewares/
-│   ├── authMiddleware.js
-│   └── errorMiddleware.js
-│
-├── services/
-│
-├── utils/
-│
-├── .env
-├── .gitignore
-├── package.json
-└── server.js
+node server.js
 ```
 
-### GitHub README image folder
+### Step 5: Test using Postman
+
+Test 1 — Get all students
 
 ```
-23_REST_API_Fundamentals/
-│
-├── images/
-│   ├── rest-api-architecture.png
-│   ├── http-methods.png
-│   └── crud-flow.png
-│
-└── README.md
+GET http://localhost:3000/api/students
 ```
 
-Use actual images committed to your GitHub repository:
+Test 2 — Get student by ID
 
 ```
-![REST API Architecture](./images/rest-api-architecture.png)
-
-![HTTP Methods](./images/http-methods.png)
-
-![CRUD Flow](./images/crud-flow.png)
+GET http://localhost:3000/api/students/2
 ```
 
-The Mermaid diagrams in this chapter can be added directly to README without generating image files.
-
-## 13. Interview questions
-
-### Beginner level
-
-Q1. What is REST?
-
-REST is an architectural style used to design web APIs using standard communication methods such as HTTP.
-
-Q2. What is a REST API?
-
-A REST API is an API designed using REST principles to allow clients and servers to communicate.
-
-Q3. What is a resource?
-
-A resource is an entity managed by an API, such as a student, employee, product, or order.
-
-Q4. What is an endpoint?
-
-An endpoint is a URL used to access a resource or perform an operation.
-
-Q5. What is JSON?
-
-JSON stands for JavaScript Object Notation. It is a lightweight format for exchanging data.
-
-### Intermediate level
-
-Q6. What is the difference between GET and POST?
-
-- GET retrieves data.
-- POST submits data, commonly to create a resource.
-
-Q7. What is the difference between PUT and PATCH?
-
-- PUT generally replaces the resource representation.
-- PATCH applies partial modifications.
-
-Q8. What is CRUD?
-
-CRUD stands for Create, Read, Update, and Delete.
-
-Q9. What is stateless architecture?
-
-Each request contains the information needed for the server to process it. The server does not rely on remembering client session state between requests.
-
-Q10. Why do we use HTTP status codes?
-
-They communicate the result of an HTTP request to the client.
-
-### Advanced level
-
-Q11. What are the main REST architectural constraints?
-
-The commonly described REST constraints are:
-
-1. Client-server.
-2. Stateless.
-3. Cacheable.
-4. Uniform interface.
-5. Layered system.
-6. Code on demand (optional).
-
-Q12. Is every HTTP API a REST API?
-
-No. An API can use HTTP without following REST architectural constraints.
-
-Q13. What is the difference between a resource and an endpoint?
-
-A resource represents the data or entity. An endpoint is the URL used to access or operate on that resource.
-
-Q14. Why is pagination important in REST APIs?
-
-Pagination limits the number of records returned in a single response, improving performance and reducing unnecessary data transfer.
-
-Q15. Can REST APIs be used with React and mobile applications?
-
-Yes. Any client that can communicate using HTTP can consume a REST API.
-
-## 14. Practice problems
-
-### Beginner exercises
-
-1. Explain REST in your own words.
-2. Identify resources in a library management application.
-3. Create GET and POST endpoints for students.
-4. Create a JSON response for employee details.
-5. Explain the difference between an endpoint and a resource.
-
-### Intermediate exercises
-
-6. Create all CRUD endpoints for products.
-7. Create a REST API for customers.
-8. Use route parameters to retrieve one employee.
-9. Use query parameters to filter products.
-10. Return appropriate HTTP status codes.
-
-### Advanced exercises
-
-11. Build a REST API for an online shopping application.
-12. Implement pagination for products.
-13. Implement filtering and sorting.
-14. Create consistent success and error response formats.
-15. Design REST endpoints for a complete Library Management System.
-
-## 15. Mini challenge — Book Management REST API
-
-Your task
-
-Build a Book Management REST API.
-
-### Requirements
-
-Create these endpoints:
-
-```
-POST    /api/books
-GET     /api/books
-GET     /api/books/:id
-PUT     /api/books/:id
-PATCH   /api/books/:id
-DELETE  /api/books/:id
-```
-
-### Book fields
+Expected response:
 
 ```
 {
-    "title": "Python Programming",
-    "author": "Ramesh",
-    "price": 500,
-    "category": "Programming"
+    "message": "Student found",
+    "data": {
+        "id": 2,
+        "name": "Kumar",
+        "course": "React.js",
+        "age": 24
+    }
 }
 ```
 
-### Expected project structure
+Test 3 — Filter students
 
 ```
-23_REST_API_Fundamentals/
-│
-├── controllers/
-│   └── bookController.js
-│
-├── routes/
-│   └── bookRoutes.js
-│
-├── server.js
-│
-└── package.json
+GET http://localhost:3000/api/filter-students?course=Node.js
 ```
 
-### Your task
-
-Implement:
-
-1. Create book.
-2. Get all books.
-3. Get book by ID.
-4. Replace book using PUT.
-5. Partially update book using PATCH.
-6. Delete book.
-7. Validate required fields.
-8. Handle missing book IDs.
-
-### Think before coding
-
-For each endpoint, ask yourself:
+Expected response:
 
 ```
-What is the HTTP method?
-          ↓
-What is the endpoint?
-          ↓
-What data do I need?
-          ↓
-What operation should happen?
-          ↓
-What status code should I return?
-          ↓
-What JSON response should I send?
+{
+    "message": "Filtered students",
+    "data": [
+        {
+            "id": 1,
+            "name": "Ramesh",
+            "course": "Node.js",
+            "age": 25
+        },
+        {
+            "id": 4,
+            "name": "Anil",
+            "course": "Node.js",
+            "age": 23
+        }
+    ]
+}
 ```
 
-Try completing this challenge independently before moving forward.
+Test 4 — Create student
 
-## 16. Chapter summary
+```
+POST http://localhost:3000/api/students
+```
 
-| Topic                | What you learned                   |
-| -------------------- | ---------------------------------- |
-| REST                 | Architectural style for APIs       |
-| Resource             | Entity managed by an API           |
-| Endpoint             | URL used to access a resource      |
-| HTTP methods         | GET, POST, PUT, PATCH, DELETE      |
-| CRUD                 | Create, Read, Update, Delete       |
-| Stateless            | Requests are handled independently |
-| JSON API             | Exchanges JSON data                |
-| REST conventions     | Resource-based URL design          |
-| Status codes         | Communicate request results        |
-| REST API development | Building APIs with Express         |
+Body → raw → JSON:
 
-Main concept: REST provides a standard way to design APIs so frontend applications, mobile applications, and other clients can communicate with backend servers.
+```
+{
+    "name": "Venkat",
+    "course": "FastAPI",
+    "age": 24
+}
+```
 
-## 17. Quick revision
+Test 5 — Send request header
 
-🧠 Remember these important points
+```
+GET http://localhost:3000/api/check-header
+```
 
-- REST stands for Representational State Transfer.
-- REST is an architectural style.
-- Resources represent application data.
-- Endpoints are URLs used to access resources.
-- GET reads data.
-- POST creates data.
-- PUT replaces a resource.
-- PATCH partially updates a resource.
-- DELETE removes a resource.
-- CRUD means Create, Read, Update, Delete.
-- Stateless means each request carries the information needed for processing.
-- JSON is commonly used for API communication.
+In Postman:
 
-  ⭐ Most important REST API structure
+1. Open the Headers tab.
+2. Enter key: `Authorization`.
+3. Enter value: `Bearer example-token`.
+4. Send the request.
 
-| Method | Endpoint         | Operation      |
-| ------ | ---------------- | -------------- |
-| POST   | `/api/books`     | Create         |
-| GET    | `/api/books`     | Read all       |
-| GET    | `/api/books/:id` | Read one       |
-| PUT    | `/api/books/:id` | Replace        |
-| PATCH  | `/api/books/:id` | Partial update |
-| DELETE | `/api/books/:id` | Delete         |
+Expected response:
 
-Chapter 23 completed
+```
+{
+    "message": "Header received",
+    "authorization": "Bearer example-token"
+}
+```
 
-Practice: Build the Book Management REST API mini challenge.
+## 11. 🔎 Filtering, Searching and Pagination
 
-When you're ready, type `NEXT` to start Chapter 24 — CRUD API, where we will build a complete API with Create, Read, Update, Delete, validation, and error handling.
+Query parameters are especially useful when working with large datasets.
+
+### A. Filtering
+
+Filtering means retrieving records that match a condition.
+
+Request:
+
+```
+GET /api/students?course=Node.js
+```
+
+Code:
+
+```
+const filteredStudents = students.filter(
+    (item) => item.course === req.query.course
+);
+```
+
+Raw data:
+
+```
+[
+    { id: 1, name: "Ramesh", course: "Node.js", age: 25 },
+    { id: 2, name: "Kumar", course: "React.js", age: 24 },
+    { id: 3, name: "Suresh", course: "Python", age: 26 }
+]
+```
+
+After filtering:
+
+```
+[
+    { id: 1, name: "Ramesh", course: "Node.js", age: 25 }
+]
+```
+
+### B. Searching
+
+Searching means finding records based on matching text.
+
+Request:
+
+```
+GET /api/students/search?name=ram
+```
+
+Code:
+
+```
+app.get("/api/students/search", (req, res) => {
+
+    const name = String(req.query.name || "").toLowerCase();
+
+    const result = students.filter((item) =>
+        item.name.toLowerCase().includes(name)
+    );
+
+    res.json({
+        data: result
+    });
+
+});
+```
+
+Here, `.includes()` checks whether the name contains the search text.
+
+For example:
+
+```
+"Ramesh".toLowerCase().includes("ram");
+```
+
+Output:
+
+```
+true
+```
+
+### C. Pagination
+
+Pagination means dividing a large collection into smaller pages.
+
+Imagine you have 100 students.
+
+Instead of returning all 100 records, you can return 10 records per page.
+
+Request:
+
+```
+GET /api/students?page=1&limit=2
+```
+
+Code:
+
+```
+app.get("/api/students/paginated", (req, res) => {
+
+    // Read query parameters
+    const page = Math.max(1, Number(req.query.page) || 1);
+
+    const limit = Math.max(1, Number(req.query.limit) || 2);
+
+    // Calculate starting position
+    const startIndex = (page - 1) * limit;
+
+    // Get required records
+    const result = students.slice(startIndex, startIndex + limit);
+
+    res.json({
+        page,
+        limit,
+        totalStudents: students.length,
+        totalPages: Math.ceil(students.length / limit),
+        data: result
+    });
+
+});
+```
+
+Request:
+
+```
+GET /api/students/paginated?page=1&limit=2
+```
+
+Expected response:
+
+```
+{
+    "page": 1,
+    "limit": 2,
+    "totalStudents": 5,
+    "totalPages": 3,
+    "data": [
+        {
+            "id": 1,
+            "name": "Ramesh",
+            "course": "Node.js",
+            "age": 25
+        },
+        {
+            "id": 2,
+            "name": "Kumar",
+            "course": "React.js",
+            "age": 24
+        }
+    ]
+}
+```
+
+### Pagination dry run
+
+Formula:
+
+```
+startIndex = (page - 1) * limit;
+```
+
+For page 1 and limit 2:
+
+```
+startIndex = (1 - 1) * 2
+           = 0
+```
+
+For page 2 and limit 2:
+
+```
+startIndex = (2 - 1) * 2
+           = 2
+```
+
+For page 3 and limit 2:
+
+```
+startIndex = (3 - 1) * 2
+           = 4
+```
+
+| Page | Start index | Returned records |
+| ---- | ----------- | ---------------- |
+| 1    | 0           | 1, 2             |
+| 2    | 2           | 3, 4             |
+| 3    | 4           | 5                |
+
+Note: In real applications, validate maximum page limits and perform pagination in the database rather than loading every record into memory.
+
+## 12. ⚠️ Common Mistakes
+
+### Mistake 1: Forgetting `express.json()`
+
+Incorrect:
+
+```
+app.post("/students", (req, res) => {
+
+    console.log(req.body);
+
+});
+```
+
+Correct:
+
+```
+app.use(express.json());
+```
+
+### Mistake 2: Forgetting to convert route IDs
+
+Incorrect:
+
+```
+const id = req.params.id;
+
+const student = students.find((item) => item.id === id);
+```
+
+The URL value is a string, while the data ID is a number.
+
+Correct:
+
+```
+const id = Number(req.params.id);
+```
+
+### Mistake 3: Reading query data from params
+
+Incorrect:
+
+```
+const course = req.params.course;
+```
+
+For:
+
+```
+/api/students?course=Node.js
+```
+
+Correct:
+
+```
+const course = req.query.course;
+```
+
+### Mistake 4: Reading body data from query
+
+Incorrect:
+
+```
+const name = req.query.name;
+```
+
+For a POST request with JSON body:
+
+```
+{
+    "name": "Ramesh"
+}
+```
+
+Correct:
+
+```
+const name = req.body.name;
+```
+
+### Mistake 5: Not validating query values
+
+Incorrect:
+
+```
+const limit = Number(req.query.limit);
+```
+
+If the user sends an invalid value, `limit` may become `NaN`.
+
+Better:
+
+```
+const limit = Math.max(1, Number(req.query.limit) || 10);
+```
+
+## 13. ⭐ Best Practices
+
+1. Use `req.params` for identifying resources.
+2. Use `req.query` for filters, search and pagination.
+3. Use `req.body` for submitted data.
+4. Use `req.headers` for request metadata and authentication information.
+5. Convert values to the expected type.
+6. Validate all user input.
+7. Set sensible pagination limits.
+8. Do not send sensitive information in URL parameters.
+9. Use HTTPS when transmitting sensitive information.
+10. Return meaningful JSON responses and status codes.
+
+## 14. 🎯 Interview Questions
+
+## 15. 📝 Practice Problems
+
+Try these exercises yourself.
+
+- Problem 1: Create an API using `req.params` to fetch an employee by ID.
+- Problem 2: Create an API using `req.query` to filter products by category.
+- Problem 3: Create a POST API using `req.body`.
+- Problem 4: Read the Authorization header using `req.headers`.
+- Problem 5: Create a search API using a name query.
+- Problem 6: Create pagination using `page` and `limit`.
+- Problem 7: Create an API that uses params, query, body and headers together.
+
+## 16. 🏆 Mini Challenge — Employee Search API
+
+### Requirement
+
+Create an Employee API with route parameters, query parameters and request body.
+
+### Initial raw data
+
+```
+let employees = [
+    { id: 1, name: "Ramesh", department: "IT", salary: 30000 },
+    { id: 2, name: "Kumar", department: "HR", salary: 25000 },
+    { id: 3, name: "Suresh", department: "Finance", salary: 35000 },
+    { id: 4, name: "Anil", department: "IT", salary: 40000 },
+    { id: 5, name: "Raj", department: "HR", salary: 28000 }
+];
+```
+
+### Your tasks
+
+1. Create GET all employees.
+2. Create GET employee by ID using `req.params`.
+3. Create department filtering using `req.query`.
+4. Create name searching using `req.query`.
+5. Create POST employee using `req.body`.
+6. Create pagination using `page` and `limit`.
+
+### Expected URLs
+
+```
+GET /api/employees
+
+GET /api/employees/1
+
+GET /api/employees?department=IT
+
+GET /api/employees/search?name=ram
+
+GET /api/employees/paginated?page=1&limit=2
+
+POST /api/employees
+```
+
+### Logic-building steps
+
+Step 1 — Requirement: Build an Employee API with different request data types.
+
+Step 2 — Input: Employee ID, department, search name and employee details.
+
+Step 3 — Output: Employee records in JSON.
+
+Step 4 — Break into steps:
+
+```
+Create Express Server
+        |
+        v
+Create Employee Array
+        |
+        v
+GET All Employees
+        |
+        v
+GET Employee By ID
+        |
+        v
+Filter by Department
+        |
+        v
+Search by Name
+        |
+        v
+POST Employee
+        |
+        v
+Pagination
+```
+
+Step 5 — Hints
+
+```
+req.params.id
+
+req.query.department
+
+req.query.name
+
+req.body
+```
+
+Step 6 — Pseudocode
+
+```
+START
+
+Create employee array
+
+Read employee ID from params
+
+Read department from query
+
+Read search name from query
+
+Read employee details from body
+
+Calculate pagination
+
+Send JSON responses
+
+END
+```
+
+Step 7 — Your turn!
+
+Try the challenge yourself. Send your code, and I will review it line by line. I will not provide the complete solution unless you ask.
+
+## 17. 📌 Chapter Summary & Quick Revision
+
+### What did we learn?
+
+| Concept       | Meaning                   | Example            |
+| ------------- | ------------------------- | ------------------ |
+| `req.params`  | Route values              | `/students/10`     |
+| `req.query`   | Query values              | `?course=Node.js`  |
+| `req.body`    | Submitted data            | JSON body          |
+| `req.headers` | Request metadata          | Authorization      |
+| Filtering     | Select matching records   | `?course=Python`   |
+| Searching     | Find matching text        | `?name=ram`        |
+| Pagination    | Divide records into pages | `?page=1&limit=10` |
+
+### Quick memory trick
+
+```
+PARAMS  = WHICH RESOURCE?
+QUERY   = WHICH FILTER?
+BODY    = WHAT DATA?
+HEADERS = WHAT REQUEST INFORMATION?
+```
+
+### Self-check
+
+- I understand `req.params`.
+- I understand `req.query`.
+- I understand `req.body`.
+- I understand `req.headers`.
+- I can filter data.
+- I can search data.
+- I can implement pagination.
+- I can test requests using Postman.
+
+## 🎓 Next Chapter
+
+Chapter 25 — REST API Validation
+
+We will learn:
+
+- What is API validation?
+- Why is validation important?
+- Required field validation
+- String validation
+- Number validation
+- Email validation
+- Custom validation middleware
+- Express-validator introduction
+- Practical Student API validation
+- Handling validation errors
+
+Type `NEXT` to start Chapter 25.
